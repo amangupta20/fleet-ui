@@ -1,6 +1,14 @@
 # fleet-ui
 
+[![CI](https://github.com/amangupta20/fleet-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/amangupta20/fleet-ui/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-34d399.svg)](LICENSE)
+[![Node.js 22.19+](https://img.shields.io/badge/node-%E2%89%A522.19-339933.svg)](.nvmrc)
+
 A feature-rich, self-hosted web console for **[fleet-base](https://github.com/amangupta20/fleet-base)** — a `celld` + [Pi Durable](https://github.com/badlogic/pi-mono) agent fleet.
+
+> **Scope:** this repository is the **console only**. It does not vendor fleet-base, celld, Worker routes, or Durable Object code. Run the Worker separately and point `FLEET_URL` at it.
+
+**Docs:** [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
 
 Fleet UI talks to the Worker API through a same-origin proxy, so the fleet never needs CORS headers and `FLEET_URL` never reaches the browser. It ships a production build, Docker image, PWA shell, optional password gate, provider dashboard, durable-transcript viewer, and 1–4 pane workspace.
 
@@ -9,7 +17,7 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
                           same origin              runtime env          Worker API
 ```
 
-> **Status:** v1, verified against `celld dev` 0.6.2 and fleet-base at port `9876`. Future capabilities are deliberately inert Labs stubs — no fake backend calls.
+> **Status:** v0.1.0, verified against `celld dev` 0.6.2 and fleet-base at port `9876`. Future capabilities are deliberately inert Labs stubs — no fake backend calls.
 
 ![Fleet UI workspace — dark theme, durable chat, run metadata](docs/workspace.png)
 
@@ -35,6 +43,7 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
 - [Roadmap](#roadmap)
 - [API assumptions](#api-assumptions)
 - [Credits](#credits)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -129,6 +138,21 @@ FLEET_UI_PASSWORD='change-me' npm run dev
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
+### Repository layout
+
+```text
+app/                    App Router pages, unlock flow, auth, /fleet-proxy, manifest
+components/             shell, panes, chat, providers, labs, shadcn/ui primitives
+hooks/  lib/  stores/   TanStack Query hooks, API/types/utilities, Zustand stores
+public/                 PWA icons, sw.js, self-contained offline.html
+scripts/smoke.mjs        live end-to-end API smoke test
+tests/                   Vitest unit tests
+Dockerfile              multi-stage Next.js standalone image
+docker-compose.yml      local Fleet UI next to celld (host networking)
+```
+
+There is **no backend source in this repo**. `fleet-base` remains its own Worker project; the only server-side code here is the Next.js proxy/auth layer.
+
 ### Why an internal proxy route instead of a literal upstream rewrite?
 
 A direct `rewrites()` destination is frozen into the production build. Routing `/api/*` to `/fleet-proxy/*` and resolving `FLEET_URL` inside the Node route handler gives:
@@ -190,6 +214,8 @@ What it does:
 - Login attempts are throttled in-memory (10 per 10 minutes per IP). This is per process and resets on restart; put a real rate limiter or access layer in front for hostile networks.
 
 This is a **single shared secret**, not multi-user authentication or authorization. It is best combined with network isolation (private network, VPN, or an authenticating reverse proxy) and TLS.
+
+See [SECURITY.md](SECURITY.md) for the threat model and reporting process.
 
 ---
 
@@ -504,6 +530,10 @@ Fleet UI targets the fleet-base Worker API:
 The browser only ever requests `/api/*`. Unknown statuses/kinds are rendered defensively rather than assumed. The request ID field accepts letters, numbers, and `. _ : / = -` up to 200 characters.
 
 ---
+
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first — it covers the UI-only scope, local backend setup, checks, and the stub policy. Security reports should follow [SECURITY.md](SECURITY.md), not a public issue.
 
 ## Credits
 
