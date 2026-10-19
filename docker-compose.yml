@@ -1,0 +1,20 @@
+# Local Fleet UI next to a celld dev Worker on the same Linux host.
+#
+# fleet-base listens on 127.0.0.1:9876, which a bridge-networked container
+# cannot reach. Host networking keeps the same loopback address working.
+#
+#   FLEET_UI_PASSWORD='choose-one' docker compose up --build
+#
+# Do not commit a password here. It is passed through from the shell/.env.
+services:
+  fleet-ui:
+    build:
+      context: .
+    image: fleet-ui:local
+    network_mode: host
+    environment:
+      FLEET_URL: ${FLEET_URL:-http://127.0.0.1:9876}
+      FLEET_UI_PASSWORD: ${FLEET_UI_PASSWORD:-}
+      PORT: "3000"
+    restart: unless-stopped
+    init: true
