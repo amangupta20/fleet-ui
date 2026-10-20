@@ -29,9 +29,9 @@ function pageMeta(pathname: string): { title: string; subtitle: string } {
 function ConsoleSkeleton() {
   return (
     <div className="flex h-dvh overflow-hidden">
-      <div className="hidden w-[272px] shrink-0 border-r bg-sidebar p-4 lg:block">
+      <div className="hidden w-[300px] shrink-0 border-r bg-sidebar p-4 lg:block">
         <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="size-8 rounded" />
           <div className="space-y-1.5">
             <Skeleton className="h-3 w-16" />
             <Skeleton className="h-2.5 w-24" />
@@ -58,13 +58,13 @@ function ConsoleSkeleton() {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-14 items-center justify-between border-b px-4">
           <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-7 w-28 rounded-full" />
+          <Skeleton className="h-7 w-28 rounded" />
         </div>
         <div className="flex flex-1 items-center justify-center p-6">
           <div className="w-full max-w-3xl space-y-4">
             <Skeleton className="h-8 w-56" />
             <Skeleton className="h-4 w-80 max-w-full" />
-            <Skeleton className="h-[420px] w-full rounded-xl" />
+            <Skeleton className="h-[420px] w-full rounded" />
           </div>
         </div>
       </div>
@@ -88,7 +88,7 @@ export function AppShell({
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
-      <aside className="hidden w-[272px] shrink-0 border-r border-sidebar-border lg:block">
+      <aside className="hidden w-[300px] shrink-0 border-r border-sidebar-border lg:block">
         <SidebarContent authEnabled={authEnabled} />
       </aside>
 
@@ -106,9 +106,9 @@ export function AppShell({
             </SheetTrigger>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="truncate text-sm font-semibold tracking-tight">{meta.title}</h1>
+                <h1 className="truncate text-base font-bold leading-[1.5]">{meta.title}</h1>
                 <span className="hidden h-1 w-1 rounded-full bg-border sm:block" />
-                <p className="hidden truncate text-xs text-muted-foreground sm:block">{meta.subtitle}</p>
+                <p className="hidden truncate text-sm text-muted-foreground sm:block">{meta.subtitle}</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5">

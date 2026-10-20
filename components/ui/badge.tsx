@@ -3,17 +3,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * OpenCode components: 4px radius (no pills), 1px borders, mono labels.
+ * Colours come from the design-system tokens only.
+ */
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-sm leading-[1.4] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary/10 text-primary",
+        default: "border-transparent bg-brand/10 text-brand",
         secondary: "border-transparent bg-secondary text-secondary-foreground",
-        destructive: "border-transparent bg-destructive/10 text-destructive",
+        destructive: "border-destructive/30 bg-destructive/10 text-destructive",
         outline: "border-border text-foreground",
-        success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-        warning: "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+        success: "border-success/30 bg-success/10 text-success",
+        warning: "border-warning/30 bg-warning/10 text-warning",
+        brand: "border-brand/30 bg-brand/10 text-brand",
         muted: "border-transparent bg-muted text-muted-foreground",
       },
     },

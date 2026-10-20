@@ -3,57 +3,88 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Design system: OpenCode.
+   * Source: .agents/skills/popular-web-designs/templates/opencode.ai.md
+   * Values are copied verbatim from that template. They are stored as HSL
+   * channel triples (same colours) because Tailwind's `/opacity` modifiers
+   * need channel triples to work. See docs/design-system.md for the mapping.
+   */
   :root {
-    --background: 40 20% 98%;
-    --foreground: 240 10% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 8%;
-    --primary: 158 80% 27%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 40 10% 94%;
-    --secondary-foreground: 240 10% 12%;
-    --muted: 40 10% 94%;
-    --muted-foreground: 240 5% 42%;
-    --accent: 158 40% 93%;
-    --accent-foreground: 158 80% 18%;
-    --destructive: 0 72% 45%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 40 10% 87%;
-    --input: 40 10% 87%;
-    --ring: 158 80% 32%;
-    --sidebar: 40 18% 96%;
-    --sidebar-foreground: 240 10% 12%;
-    --sidebar-accent: 158 35% 92%;
-    --sidebar-border: 40 10% 87%;
-    --radius: 0.65rem;
+    /* OpenCode Light #fdfcfc · OpenCode Dark #201d1d */
+    --background: 0 20% 99.02%;
+    --foreground: 0 4.918% 11.961%;
+    /* Input Light #f8f7f7 */
+    --card: 0 6.667% 97.059%;
+    --card-foreground: 0 4.918% 11.961%;
+    --popover: 0 6.667% 97.059%;
+    --popover-foreground: 0 4.918% 11.961%;
+    --primary: 0 4.918% 11.961%;
+    --primary-foreground: 0 20% 99.02%;
+    /* Light Surface #f1eeee */
+    --secondary: 0 9.677% 93.922%;
+    --secondary-foreground: 0 4.918% 11.961%;
+    --muted: 0 9.677% 93.922%;
+    /* Text Muted #6e6e73 */
+    --muted-foreground: 240 2.222% 44.118%;
+    --accent: 0 9.677% 93.922%;
+    --accent-foreground: 0 4.918% 11.961%;
+    /* Danger Red #ff3b30 */
+    --destructive: 3.188 100% 59.412%;
+    --destructive-foreground: 0 20% 99.02%;
+    /* Border Warm rgba(15, 0, 0, 0.12) */
+    --border: 0 0% 5.882%;
+    --border-alpha: 0.12;
+    --input: 0 0% 5.882%;
+    /* Accent Blue #007aff */
+    --ring: 211.294 100% 50%;
+    --sidebar: 0 9.677% 93.922%;
+    --sidebar-foreground: 0 4.918% 11.961%;
+    --sidebar-accent: 0 6.667% 97.059%;
+    --sidebar-accent-alpha: 1;
+    --sidebar-accent-hover: 0 9.677% 93.922%;
+    --sidebar-border: 0 0% 5.882%;
+    /* Semantic accents */
+    --accent-brand: 211.294 100% 50%;
+    /* Success Green #30d158 */
+    --success: 134.907 63.636% 50.392%;
+    /* Warning Orange #ff9f0a */
+    --warning: 36.49 100% 51.961%;
+    /* Radius: 4px micro */
+    --radius: 4px;
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 40 15% 94%;
-    --card: 240 8% 7%;
-    --card-foreground: 40 15% 94%;
-    --popover: 240 8% 8%;
-    --popover-foreground: 40 15% 94%;
-    --primary: 158 64% 52%;
-    --primary-foreground: 160 90% 7%;
-    --secondary: 240 6% 12%;
-    --secondary-foreground: 40 15% 94%;
-    --muted: 240 6% 12%;
-    --muted-foreground: 240 5% 58%;
-    --accent: 158 24% 13%;
-    --accent-foreground: 158 70% 75%;
-    --destructive: 0 63% 48%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 16%;
-    --input: 240 6% 18%;
-    --ring: 158 64% 45%;
-    --sidebar: 240 9% 5.5%;
-    --sidebar-foreground: 40 12% 90%;
-    --sidebar-accent: 158 20% 11%;
-    --sidebar-border: 240 6% 14%;
+    --background: 0 4.918% 11.961%;
+    --foreground: 0 20% 99.02%;
+    /* Dark Surface #302c2c */
+    --card: 0 4.348% 18.039%;
+    --card-foreground: 0 20% 99.02%;
+    --popover: 0 4.348% 18.039%;
+    --popover-foreground: 0 20% 99.02%;
+    --primary: 0 20% 99.02%;
+    --primary-foreground: 0 4.918% 11.961%;
+    --secondary: 0 4.348% 18.039%;
+    --secondary-foreground: 0 20% 99.02%;
+    --muted: 0 4.348% 18.039%;
+    /* Mid Gray #9a9898 */
+    --muted-foreground: 0 0.98% 60%;
+    --accent: 0 4.348% 18.039%;
+    --accent-foreground: 0 20% 99.02%;
+    --destructive: 3.188 100% 59.412%;
+    --destructive-foreground: 0 20% 99.02%;
+    /* Border Gray #646262 */
+    --border: 0 1.01% 38.824%;
+    --border-alpha: 1;
+    --input: 0 1.01% 38.824%;
+    --ring: 211.294 100% 50%;
+    --sidebar: 0 4.348% 18.039%;
+    --sidebar-foreground: 0 20% 99.02%;
+    --sidebar-accent: 0 20% 99.02%;
+    --sidebar-accent-alpha: 0.06;
+    --sidebar-accent-hover: 0 20% 99.02%;
+    --sidebar-accent-hover-alpha: 0.12;
+    --sidebar-border: 0 1.01% 38.824%;
   }
 
   * {
@@ -66,12 +97,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background: hsl(var(--primary) / 0.25);
+    background: hsl(var(--accent-brand) / 0.25);
   }
 
   * {
@@ -105,15 +135,14 @@
 
   .pane-surface {
     @apply flex min-h-0 w-full flex-col overflow-hidden rounded-lg border bg-card;
-    box-shadow: 0 1px 0 hsl(var(--foreground) / 0.03), 0 18px 40px -30px hsl(var(--foreground) / 0.35);
   }
 
   .meta-label {
-    @apply text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
+    @apply text-sm font-medium leading-[1.4] text-muted-foreground;
   }
 
   .hairline {
-    @apply border-border/70;
+    @apply border-border;
   }
 }
 
@@ -139,7 +168,7 @@
 
 @layer components {
   .markdown-body {
-    @apply text-sm leading-relaxed text-foreground;
+    @apply text-base leading-[1.5] text-foreground;
     overflow-wrap: anywhere;
   }
 
@@ -155,11 +184,11 @@
   .markdown-body h2,
   .markdown-body h3,
   .markdown-body h4 {
-    @apply font-semibold tracking-tight text-foreground;
+    @apply font-bold tracking-tight text-foreground;
   }
 
   .markdown-body h1 {
-    @apply text-lg;
+    @apply text-base;
   }
   .markdown-body h2 {
     @apply text-base;
@@ -170,7 +199,7 @@
   }
 
   .markdown-body a {
-    @apply font-medium text-primary underline underline-offset-4 hover:opacity-80;
+    @apply font-medium text-brand underline underline-offset-4 hover:opacity-80;
   }
 
   .markdown-body ul {
@@ -186,7 +215,7 @@
   }
 
   .markdown-body blockquote {
-    @apply border-l-2 border-primary/30 pl-3 text-muted-foreground;
+    @apply border-l-2 border-brand/30 pl-3 text-muted-foreground;
   }
 
   .markdown-body hr {
@@ -194,15 +223,15 @@
   }
 
   .markdown-body pre {
-    @apply overflow-x-auto rounded-md border bg-muted/60 p-3 font-mono text-[12px] leading-relaxed;
+    @apply overflow-x-auto rounded-md border bg-muted/60 p-3 font-mono text-sm leading-[1.6];
   }
 
   .markdown-body :not(pre) > code {
-    @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground;
+    @apply rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground;
   }
 
   .markdown-body table {
-    @apply w-full border-collapse text-xs;
+    @apply w-full border-collapse text-sm;
   }
 
   .markdown-body th,
@@ -235,6 +264,6 @@
   }
 
   .markdown-body input[type="checkbox"] {
-    accent-color: hsl(var(--primary));
+    accent-color: hsl(var(--accent-brand));
   }
 }

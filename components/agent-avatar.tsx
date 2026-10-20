@@ -1,12 +1,17 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Avatar tints come from the OpenCode tokens only (see
+ * docs/design-system.md): accent blue, success green, warning orange, danger
+ * red and two neutral surfaces.
+ */
 const PALETTES = [
-  "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
-  "bg-sky-500/12 text-sky-700 dark:text-sky-300 border-sky-500/20",
-  "bg-amber-500/12 text-amber-700 dark:text-amber-300 border-amber-500/20",
-  "bg-violet-500/12 text-violet-700 dark:text-violet-300 border-violet-500/20",
-  "bg-rose-500/12 text-rose-700 dark:text-rose-300 border-rose-500/20",
-  "bg-teal-500/12 text-teal-700 dark:text-teal-300 border-teal-500/20",
+  "bg-brand/10 text-brand border-brand/30",
+  "bg-success/10 text-success border-success/30",
+  "bg-warning/10 text-warning border-warning/30",
+  "bg-destructive/10 text-destructive border-destructive/30",
+  "bg-muted text-muted-foreground border-border",
+  "bg-secondary text-secondary-foreground border-border",
 ] as const;
 
 function hashName(name: string): number {
@@ -40,10 +45,10 @@ export function AgentAvatar({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-md border font-semibold",
-        size === "sm" && "h-6 w-6 text-[9px]",
-        size === "md" && "h-8 w-8 text-[11px]",
-        size === "lg" && "h-10 w-10 text-sm",
+        "inline-flex shrink-0 items-center justify-center rounded-md border font-medium",
+        size === "sm" && "size-6 text-sm",
+        size === "md" && "size-8 text-sm",
+        size === "lg" && "size-10 text-sm",
         palette,
         className,
       )}

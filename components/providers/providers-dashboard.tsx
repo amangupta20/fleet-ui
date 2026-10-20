@@ -83,10 +83,10 @@ function StatCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="meta-label">{label}</p>
-            <p className={cn("mt-1.5 truncate text-lg font-semibold tracking-tight", accent)} title={value}>
+            <p className={cn("mt-1.5 truncate text-base font-bold leading-[1.5]", accent)} title={value}>
               {value}
             </p>
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{detail}</p>
+            <p className="mt-0.5 truncate text-sm text-muted-foreground">{detail}</p>
           </div>
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-muted/40">
             <Icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -114,7 +114,7 @@ function CatalogRow({
           {isDefault ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
+                <Star className="h-3.5 w-3.5 shrink-0 fill-warning text-warning" />
               </TooltipTrigger>
               <TooltipContent>Resolved fleet default</TooltipContent>
             </Tooltip>
@@ -122,11 +122,11 @@ function CatalogRow({
             <span className="h-3.5 w-3.5 shrink-0" />
           )}
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium">{model.name}</p>
+            <p className="truncate text-sm font-medium">{model.name}</p>
             <button
               type="button"
               onClick={() => copyRef(ref)}
-              className="group/ref flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+              className="group/ref flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
               title={`Copy ${ref}`}
             >
               <code className="truncate font-mono">{model.id}</code>
@@ -136,23 +136,23 @@ function CatalogRow({
         </div>
       </TableCell>
       <TableCell>
-        <span className={cn("text-[11px] font-medium", providerAccent(model.provider))}>
+        <span className={cn("text-sm font-medium", providerAccent(model.provider))}>
           {providerLabel(model.provider)}
         </span>
       </TableCell>
-      <TableCell className="font-mono text-[11px]" title={formatFullNumber(model.contextWindow)}>
+      <TableCell className="font-mono text-sm" title={formatFullNumber(model.contextWindow)}>
         {formatCompactNumber(model.contextWindow)}
       </TableCell>
-      <TableCell className="font-mono text-[11px]" title={formatFullNumber(model.maxTokens)}>
+      <TableCell className="font-mono text-sm" title={formatFullNumber(model.maxTokens)}>
         {formatCompactNumber(model.maxTokens)}
       </TableCell>
       <TableCell>
         {configured ? (
-          <Badge variant="success" className="text-[9px]">
+          <Badge variant="success" className="text-sm">
             <CheckCircle2 className="h-2.5 w-2.5" /> ready
           </Badge>
         ) : (
-          <Badge variant="muted" className="text-[9px]">
+          <Badge variant="muted" className="text-sm">
             <XCircle className="h-2.5 w-2.5" /> not configured
           </Badge>
         )}
@@ -233,15 +233,15 @@ export function ProvidersDashboard() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight">Providers</h1>
+            <h1 className="text-base font-bold leading-[1.5]">Providers</h1>
           </div>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             The Worker's static catalog, env-provider readiness, and live router discovery. Models are addressed as{" "}
-            <code className="rounded bg-muted px-1 font-mono text-[11px] text-foreground">provider/id</code>.
+            <code className="rounded bg-muted px-1 font-mono text-sm text-foreground">provider/id</code>.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {lastUpdated ? <span className="hidden text-[11px] text-muted-foreground sm:inline">synced {lastUpdated}</span> : null}
+          {lastUpdated ? <span className="hidden text-sm text-muted-foreground sm:inline">synced {lastUpdated}</span> : null}
           <Button variant="outline" size="sm" onClick={() => void models.refetch()} disabled={models.isFetching}>
             <RefreshCw className={cn("h-3.5 w-3.5", models.isFetching && "animate-spin")} />
             Refresh
@@ -260,8 +260,8 @@ export function ProvidersDashboard() {
             <CloudOff className="h-5 w-5 shrink-0 text-destructive" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-destructive">Could not load /models</p>
-              <p className="mt-1 text-xs text-muted-foreground">{errorMessage(models.error)}</p>
-              <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">{errorMessage(models.error)}</p>
+              <p className="mt-1.5 font-mono text-sm text-muted-foreground">
                 Check FLEET_URL and that <span className="text-foreground">celld dev</span> is running at port 9876.
               </p>
             </div>
@@ -294,7 +294,7 @@ export function ProvidersDashboard() {
               value={defaultRef ?? "Unset"}
               detail={data.default ? "fresh sessions start here" : "no provider resolved"}
               icon={Star}
-              accent={data.default ? "text-primary" : "text-amber-600"}
+              accent={data.default ? "text-brand" : "text-warning"}
             />
             <StatCard
               label="Configured providers"
@@ -313,7 +313,7 @@ export function ProvidersDashboard() {
               value={routerLive === null ? "Unreachable" : `${routerLive.length} live`}
               detail={routerLive === null ? "static router ids still usable" : data.router.baseUrl}
               icon={Network}
-              accent={routerLive === null ? "text-amber-600" : undefined}
+              accent={routerLive === null ? "text-warning" : undefined}
             />
           </div>
 
@@ -338,13 +338,13 @@ export function ProvidersDashboard() {
                         <CardTitle className="text-sm">{providerLabel(group.provider)}</CardTitle>
                       </div>
                       {group.configured ? (
-                        <Badge variant="success" className="text-[9px]">configured</Badge>
+                        <Badge variant="success" className="text-sm">configured</Badge>
                       ) : (
-                        <Badge variant="muted" className="text-[9px]">off</Badge>
+                        <Badge variant="muted" className="text-sm">off</Badge>
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-[11px]">
+                  <CardContent className="flex flex-col gap-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Catalog models</span>
                       <span className="font-mono">{group.catalog.length}</span>
@@ -356,17 +356,17 @@ export function ProvidersDashboard() {
                     {group.provider === "router" ? (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Live ids</span>
-                        <span className={cn("font-mono", group.live === null && "text-amber-600 dark:text-amber-400")}>
+                        <span className={cn("font-mono", group.live === null && "text-warning")}>
                           {group.live === null ? "unreachable" : group.live}
                         </span>
                       </div>
                     ) : null}
                     {!group.configured ? (
-                      <p className="border-t pt-2 font-mono text-[9px] leading-relaxed text-muted-foreground">
+                      <p className="border-t pt-2 font-mono text-sm leading-relaxed text-muted-foreground">
                         {providerHint(group.provider)}
                       </p>
                     ) : (
-                      <p className="border-t pt-2 font-mono text-[9px] leading-relaxed text-muted-foreground">
+                      <p className="border-t pt-2 font-mono text-sm leading-relaxed text-muted-foreground">
                         {group.provider === "router" ? data.router.baseUrl : "env authentication ready"}
                       </p>
                     )}
@@ -377,18 +377,18 @@ export function ProvidersDashboard() {
           </div>
 
           {group0Router(data) ? (
-            <Card className="mt-5 border-amber-500/20 bg-amber-500/[0.03]">
-              <CardContent className="flex flex-col gap-2 p-3 text-xs sm:flex-row sm:items-start">
-                <Network className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <Card className="mt-5 border-warning/20 bg-warning/[0.03]">
+              <CardContent className="flex flex-col gap-2 p-3 text-sm sm:flex-row sm:items-start">
+                <Network className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">Router serves ids outside the pinned catalog</p>
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
                     {unpinnedLive.length} live id{unpinnedLive.length === 1 ? "" : "s"} cannot be selected per-request
                     until pre-registered via <code className="font-mono text-foreground">ROUTER_EXTRA_MODELS</code>.
                   </p>
                   <div className="mt-2 flex max-h-16 flex-wrap gap-1 overflow-y-auto">
                     {unpinnedLive.slice(0, 40).map((id) => (
-                      <code key={id} className="rounded border bg-background px-1.5 py-0.5 font-mono text-[9px]">
+                      <code key={id} className="rounded border bg-background px-1.5 py-0.5 font-mono text-sm">
                         {id}
                       </code>
                     ))}
@@ -403,9 +403,9 @@ export function ProvidersDashboard() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <Cpu className="h-4 w-4 text-primary" /> Model catalog
+                    <Cpu className="size-4 text-brand" /> Model catalog
                   </CardTitle>
-                  <CardDescription className="mt-1 text-xs">
+                  <CardDescription className="mt-1 text-sm">
                     {filteredCatalog.length} of {data.catalog.length} models · click an id to copy.
                   </CardDescription>
                 </div>
@@ -415,7 +415,7 @@ export function ProvidersDashboard() {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search models or providers…"
-                    className="h-8 pl-8 text-xs"
+                    className="h-8 pl-8 text-sm"
                     aria-label="Search model catalog"
                   />
                 </div>
@@ -424,7 +424,7 @@ export function ProvidersDashboard() {
                 <Button
                   variant={providerFilter === "all" ? "secondary" : "ghost"}
                   size="xs"
-                  className="h-6 rounded-full px-2 text-[10px]"
+                  className="h-6 rounded px-2 text-sm"
                   onClick={() => setProviderFilter("all")}
                 >
                   All <span className="font-mono opacity-60">{data.catalog.length}</span>
@@ -434,7 +434,7 @@ export function ProvidersDashboard() {
                     key={group.provider}
                     variant={providerFilter === group.provider ? "secondary" : "ghost"}
                     size="xs"
-                    className="h-6 rounded-full px-2 text-[10px]"
+                    className="h-6 rounded px-2 text-sm"
                     onClick={() => setProviderFilter(group.provider)}
                   >
                     {providerLabel(group.provider)}
@@ -448,7 +448,7 @@ export function ProvidersDashboard() {
                 <div className="flex flex-col items-center px-4 py-12 text-center">
                   <Search className="h-5 w-5 text-muted-foreground" />
                   <p className="mt-2 text-sm font-medium">No models match</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Clear the search or pick another provider.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Clear the search or pick another provider.</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -488,10 +488,10 @@ export function ProvidersDashboard() {
             </CardContent>
           </Card>
 
-          <p className="mt-4 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+          <p className="mt-4 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
             Live from <code className="font-mono">GET /models</code>. Router base URL and env credentials come from the
             Worker; this UI never sees provider keys.
-            <Link href="/labs" className="ml-auto inline-flex items-center gap-1 text-primary hover:underline">
+            <Link href="/labs" className="ml-auto inline-flex items-center gap-1 text-brand hover:underline">
               Explore future capabilities <ArrowUpRight className="h-3 w-3" />
             </Link>
           </p>

@@ -27,6 +27,7 @@ import { toast } from "sonner";
 
 import { AddAgentDialog } from "@/components/add-agent-dialog";
 import { AgentAvatar } from "@/components/agent-avatar";
+import { LifecycleChip } from "@/components/workspace/lifecycle-chip";
 import { Brand } from "@/components/logo";
 import { LockButton } from "@/components/lock-button";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -62,9 +63,11 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAgentDirectory, useAgentStates, useModels } from "@/hooks/use-fleet";
 import { decodeAgentName } from "@/lib/agent-name";
+import { deriveAgentLifecycle, type AgentLifecycle } from "@/lib/lifecycle";
 import type { MergedAgent } from "@/lib/agent-merge";
 import type { AgentSource } from "@/lib/fleet-types";
 import { cn, copyText, formatRelativeTime, pluralize } from "@/lib/utils";
+import { useChatStore } from "@/stores/chat-store";
 import { useFleetStore } from "@/stores/fleet-store";
 
 const NAV_ITEMS = [
@@ -80,8 +83,8 @@ const SOURCE_LABEL: Record<AgentSource, string> = {
 };
 
 const SOURCE_BADGE: Record<AgentSource, string> = {
-  fleet: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  paperclip: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  fleet: "border-success/30 bg-success/10 text-success",
+  paperclip: "border-brand/30 bg-brand/10 text-brand",
   local: "border-border bg-muted text-muted-foreground",
 };
 
@@ -101,11 +104,11 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-1 flex items-center gap-1.5 px-1.5">
-      <Icon className="h-3 w-3 text-muted-foreground" />
-      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <Icon className="size-3 text-muted-foreground" />
+      <span className="text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {title}
       </span>
-      <span className="rounded bg-muted px-1 font-mono text-[9px] text-muted-foreground">
+      <span className="rounded bg-muted px-1 font-mono text-sm text-muted-foreground">
         {count}
       </span>
     </div>
@@ -142,21 +145,29 @@ export function SidebarContent({
     [agents],
   );
   const stateQueries = useAgentStates(fleetAgents.map((agent) => agent.name));
+  const runsByAgent = useChatStore((state) => state.runsByAgent);
+  const inflightByAgent = useChatStore((state) => state.inflightByAgent);
   const models = useModels();
   const defaultModelLabel = models.data?.default
     ? `${models.data.default.provider}/${models.data.default.id}`
     : null;
 
-  const statusByName = useMemo(() => {
-    const map = new Map<string, "online" | "offline" | "checking">();
+  const lifecycleByName = useMemo(() => {
+    const map = new Map<string, AgentLifecycle>();
     fleetAgents.forEach((agent, index) => {
       const query = stateQueries[index];
-      if (!query || query.isPending) map.set(agent.name, "checking");
-      else if (query.isSuccess) map.set(agent.name, "online");
-      else map.set(agent.name, "offline");
+      const runs = runsByAgent[agent.name] ?? [];
+      map.set(
+        agent.name,
+        deriveAgentLifecycle({
+          probe: query ?? { isPending: true, isError: false },
+          promptInFlight: Boolean(inflightByAgent[agent.name]),
+          lastRun: runs.length > 0 ? runs[runs.length - 1] : null,
+        }),
+      );
     });
     return map;
-  }, [fleetAgents, stateQueries]);
+  }, [fleetAgents, stateQueries, runsByAgent, inflightByAgent]);
 
   const filteredAgents = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -235,7 +246,7 @@ export function SidebarContent({
 
   const renderAgentRow = (row: MergedAgent) => {
     const displayName = displayNameFor(row);
-    const status = row.source === "fleet" ? statusByName.get(row.name) ?? "checking" : null;
+    const lifecycle = row.source === "fleet" ? lifecycleByName.get(row.name) ?? "initializing" : null;
     const paneIndex = paneIndexByName.get(row.name);
     const selected = panes[activePane] === row.name;
     const starred = row.local?.starred === true;
@@ -253,8 +264,8 @@ export function SidebarContent({
       <li key={row.name} className="group/agent relative">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-md border border-transparent px-1.5 py-1.5 transition-colors",
-            selected ? "border-primary/15 bg-sidebar-accent" : "hover:bg-sidebar-accent/55",
+            "flex items-center gap-2 rounded border border-transparent px-1.5 py-1.5 transition-colors",
+            selected ? "border-brand/15 bg-sidebar-accent" : "hover:bg-sidebar-accent-hover",
           )}
         >
           <button
@@ -263,59 +274,34 @@ export function SidebarContent({
             className="flex min-w-0 flex-1 items-center gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
             title={`${row.name}${modelLabel ? ` · ${modelLabel}` : ""}`}
           >
-            <span className="relative">
-              <AgentAvatar name={displayName} size="md" />
-              {status ? (
-                <span
-                  className={cn(
-                    "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-sidebar",
-                    status === "online"
-                      ? "bg-emerald-500"
-                      : status === "offline"
-                        ? "bg-rose-500"
-                        : "bg-muted-foreground/50",
-                  )}
-                  title={
-                    status === "online"
-                      ? "Reachable"
-                      : status === "offline"
-                        ? "Unreachable"
-                        : "Checking"
-                  }
-                  aria-label={
-                    status === "online"
-                      ? "Reachable"
-                      : status === "offline"
-                        ? "Unreachable"
-                        : "Checking"
-                  }
-                />
-              ) : null}
-            </span>
+            <AgentAvatar name={displayName} size="md" />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
-                <span className="block truncate text-[13px] font-medium leading-tight">
+                <span className="block truncate text-sm font-medium leading-tight">
                   {displayName}
                 </span>
                 {starred ? (
-                  <Star className="h-3 w-3 shrink-0 fill-amber-400 text-amber-500" aria-label="Starred" />
+                  <Star className="size-3 shrink-0 fill-warning text-warning" aria-label="Starred" />
                 ) : null}
                 <span
                   className={cn(
-                    "shrink-0 rounded border px-1 font-mono text-[8px] uppercase leading-4 tracking-wide",
+                    "shrink-0 rounded border px-1 font-mono text-sm uppercase leading-4 tracking-wide",
                     SOURCE_BADGE[row.source],
                   )}
                 >
                   {SOURCE_LABEL[row.source]}
                 </span>
+              </span>
+              <span className="flex items-center gap-1.5">
                 {paneIndex !== undefined ? (
-                  <span className="shrink-0 rounded-sm bg-primary/10 px-1 font-mono text-[9px] leading-4 text-primary">
+                  <span className="shrink-0 rounded-sm bg-brand/10 px-1 font-mono text-sm leading-4 text-brand">
                     {paneIndex + 1}
                   </span>
                 ) : null}
-              </span>
-              <span className="block truncate font-mono text-[10px] leading-tight text-muted-foreground">
-                {meta}
+                {lifecycle ? <LifecycleChip lifecycle={lifecycle} className="shrink-0" /> : null}
+                <span className="block truncate font-mono text-sm leading-tight text-muted-foreground">
+                  {meta}
+                </span>
               </span>
             </span>
           </button>
@@ -325,24 +311,24 @@ export function SidebarContent({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="h-6 w-6 opacity-0 transition-opacity group-hover/agent:opacity-100 data-[state=open]:opacity-100"
+                className="size-6 opacity-0 transition-opacity group-hover/agent:opacity-100 data-[state=open]:opacity-100"
                 aria-label={`Actions for ${displayName}`}
               >
-                <MoreHorizontal className="h-3.5 w-3.5" />
+                <MoreHorizontal className="size-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel className="truncate">
                 {displayName}
                 {displayName !== row.name ? (
-                  <span className="block truncate font-mono text-[9px] font-normal text-muted-foreground">
+                  <span className="block truncate font-mono text-sm font-normal text-muted-foreground">
                     {row.name}
                   </span>
                 ) : null}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => selectAgent(row.name)}>
-                <LayoutDashboard className="h-3.5 w-3.5" /> Open in active pane
+                <LayoutDashboard className="size-3.5" /> Open in active pane
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -351,19 +337,19 @@ export function SidebarContent({
                   );
                 }}
               >
-                <Download className="h-3.5 w-3.5 rotate-180" /> Copy API name
+                <Download className="size-3.5 rotate-180" /> Copy API name
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openRename(row)}>
-                <Pencil className="h-3.5 w-3.5" /> Rename rail label
+                <Pencil className="size-3.5" /> Rename rail label
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toggleStar(row)}>
                 {starred ? (
                   <>
-                    <StarOff className="h-3.5 w-3.5" /> Remove star
+                    <StarOff className="size-3.5" /> Remove star
                   </>
                 ) : (
                   <>
-                    <Star className="h-3.5 w-3.5" /> Star locally
+                    <Star className="size-3.5" /> Star locally
                   </>
                 )}
               </DropdownMenuItem>
@@ -374,7 +360,7 @@ export function SidebarContent({
                     className="text-destructive focus:text-destructive"
                     onClick={() => setRemoveTarget(row)}
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Remove local shortcut
+                    <Trash2 className="size-3.5" /> Remove local shortcut
                   </DropdownMenuItem>
                 </>
               ) : null}
@@ -389,7 +375,7 @@ export function SidebarContent({
     <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4 pr-11 lg:pr-4">
         <Brand onClick={() => { router.push("/"); onNavigate?.(); }} />
-        <span className="rounded border border-sidebar-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+        <span className="rounded border border-sidebar-border px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
           v0.1
         </span>
       </div>
@@ -404,17 +390,17 @@ export function SidebarContent({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded px-2.5 py-2 text-sm font-medium transition-colors",
                 active
-                  ? "bg-sidebar-accent text-sidebar-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/.16)]"
+                  ? "bg-sidebar-accent text-sidebar-foreground ring-1 ring-brand/35"
                   : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
               )}
               aria-current={active ? "page" : undefined}
             >
-              <Icon className={cn("h-4 w-4", active && "text-primary")} />
+              <Icon className={cn("size-4", active && "text-brand")} />
               {item.label}
               {item.href === "/labs" ? (
-                <span className="ml-auto rounded-full border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
                   stubs
                 </span>
               ) : null}
@@ -428,8 +414,8 @@ export function SidebarContent({
       <div className="flex min-h-0 flex-1 flex-col pt-3">
         <div className="flex items-center justify-between px-4 pb-1.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Agents</span>
-            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+            <span className="text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">Agents</span>
+            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
               {agents.length}
             </span>
           </div>
@@ -443,12 +429,12 @@ export function SidebarContent({
                     void directory.server.refetch();
                     void directory.paperclip.refetch();
                   }}
-                  className="h-6 w-6"
+                  className="size-6"
                   aria-label="Refresh agent lists"
                 >
                   <RefreshCw
                     className={cn(
-                      "h-3.5 w-3.5",
+                      "size-3.5",
                       (directory.server.isFetching || directory.paperclip.isFetching) && "animate-spin",
                     )}
                   />
@@ -462,10 +448,10 @@ export function SidebarContent({
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => setAddOpen(true)}
-                  className="h-6 w-6"
+                  className="size-6"
                   aria-label="Add agent"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="size-3.5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Add agent</TooltipContent>
@@ -475,12 +461,12 @@ export function SidebarContent({
 
         <div className="px-2.5 pb-2">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Filter agents…"
-              className="h-8 border-sidebar-border bg-background/50 pl-8 text-xs"
+              className="h-8 border-sidebar-border bg-background/50 pl-8 text-sm"
               aria-label="Filter agents"
             />
           </div>
@@ -488,13 +474,13 @@ export function SidebarContent({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-2">
           {filteredAgents.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-sidebar-border p-3 text-center">
-              <p className="text-xs text-muted-foreground">
+            <div className="rounded border border-dashed border-sidebar-border p-3 text-center">
+              <p className="text-sm text-muted-foreground">
                 {agents.length === 0 ? "No agents yet." : "No matches."}
               </p>
               {agents.length === 0 ? (
-                <Button variant="outline" size="sm" className="mt-2 h-7 text-xs" onClick={() => setAddOpen(true)}>
-                  <Plus className="h-3 w-3" /> Add your first agent
+                <Button variant="outline" size="sm" className="mt-2 h-7 text-sm" onClick={() => setAddOpen(true)}>
+                  <Plus className="size-3" /> Add your first agent
                 </Button>
               ) : null}
             </div>
@@ -525,7 +511,7 @@ export function SidebarContent({
         </div>
 
         <div className="shrink-0 px-2.5 pb-1">
-          <p className="px-1.5 text-[10px] leading-relaxed text-muted-foreground/80">
+          <p className="px-1.5 font-mono text-sm leading-[1.5] text-muted-foreground/80">
             {directory.paperclipEnabled
               ? "Fleet + Paperclip are server lists. Local shortcuts are the offline fallback."
               : "Fleet is server-side. Local shortcuts are the offline fallback."}
@@ -538,10 +524,10 @@ export function SidebarContent({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 flex-1 justify-start gap-2 px-2 text-xs text-muted-foreground hover:text-foreground"
+            className="h-8 flex-1 justify-start gap-2 px-2 text-sm text-muted-foreground hover:text-foreground"
             onClick={openSettings}
           >
-            <Settings2 className="h-3.5 w-3.5" /> Settings
+            <Settings2 className="size-3.5" /> Settings
           </Button>
           <ThemeToggle />
           {authEnabled ? <LockButton /> : null}
@@ -549,7 +535,7 @@ export function SidebarContent({
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon-sm" asChild aria-label="Fleet UI on GitHub">
                 <a href="https://github.com/amangupta20/fleet-ui" target="_blank" rel="noreferrer">
-                  <Github className="h-4 w-4" />
+                  <Github className="size-4" />
                 </a>
               </Button>
             </TooltipTrigger>
@@ -590,7 +576,7 @@ export function SidebarContent({
                 autoComplete="off"
                 aria-label="Rail label"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Leave empty to show the canonical name again.
               </p>
             </div>

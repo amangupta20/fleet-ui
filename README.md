@@ -21,6 +21,43 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
 
 ![Fleet UI workspace — dark theme, durable chat, run metadata](docs/workspace.png)
 
+### Verification
+
+Every live claim in this README is checked with a `curl` against a running
+`celld dev` — the commands and their output are recorded in
+**[docs/verification.md](docs/verification.md)** (Allow header, message-limit
+clamp and default, rail source, `submissionId`, live smoke run).
+
+### Screenshots
+
+Before (v0.1 chat bubbles) and after (OpenCode agent timeline) — the same
+backend, the same agent (`ui-smoke-tool`) and the same real `submissionId`
+(`smoke_1792500534983_5cq3nq`), captured with the same seeded browser state:
+
+| Before | After |
+|---|---|
+| ![Before — chat bubbles](docs/screens/before-chat.png) | ![After — epoch timeline](docs/screens/after-chat.png) |
+
+The agent rail before and after (reachability dot → lifecycle chip, sans → mono,
+pill radii → 4px):
+
+| Before — rail | After — rail |
+|---|---|
+| ![Before — rail](docs/screens/before-rail.png) | ![After — rail](docs/screens/after-rail.png) |
+
+| After — epoch timeline with tool rows | After — disabled revert, labelled stub |
+|---|---|
+| ![After — tool rows](docs/screens/after-tool-rows.png) | ![After — revert tooltip](docs/screens/after-revert-tooltip.png) |
+
+| After — lifecycle chip `running` | After — terminal stub, diff placeholder |
+|---|---|
+| ![After — running lifecycle](docs/screens/after-running-lifecycle.png) | ![After — terminal](docs/screens/after-terminal.png) |
+
+The diff region ships wired but empty — it renders real before/after content
+as soon as the backend provides a patch, and says so until then:
+
+![After — diff placeholder](docs/screens/after-diff-placeholder.png)
+
 ---
 
 ## Contents
@@ -53,7 +90,8 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
 | Area | v1 behavior |
 |---|---|
 | **Agent rail** | Server `GET /agents` + optional Paperclip directory + local recents, grouped **Fleet / Paperclip / Local** with origin badges; activity + prompt counts, search, add/rename/star/remove local shortcuts, reachability dots |
-| **Chat** | Prompt composer, browser session log, markdown answers, copy/export, retry, model override, live latency, `status` / `reason`, `requestId` + `submissionId` / `operationId` |
+| **Chat** | Prompt composer on an **agent timeline**: every turn renders as rows (user turn, model turn, tool call, tool result, permission request). Epochs are keyed by the Worker's `submissionId`; each epoch header carries prompt, model, timestamp, status and a **disabled** revert control |
+| **Lifecycle** | Per-agent chip — `initializing` / `idle` / `running` / `error` / `closed` — mapped from the coarse backend state in one isolated function (`lib/lifecycle.ts`) |
 | **Idempotency** | Auto-generated request IDs per send, manual IDs, reuse-last, same-ID retry; copy every ID |
 | **Durable transcript** | Tail `GET /agent/:name/messages` with limit selector (server clamps to 1–100, default 20 when omitted), kind/id/preview rendering, refresh, JSON/text export |
 | **Reset** | Confirmed `POST /agent/:name/reset`; clears server context and the browser run log for that agent |
@@ -64,6 +102,7 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
 | **Password gate** | Optional shared password via runtime env, HMAC-signed HttpOnly cookie, login throttle, lock button |
 | **Keyboard** | `Cmd/Ctrl + Enter` sends; `Shift + Enter` inserts a newline |
 | **Labs** | Ten future-feature stubs behind local flags: terminal, files/diff, harness picker, preview URLs, MCP, skills, queues/runs, vault, node ops, analytics |
+| **Design system** | One system, applied end to end: **OpenCode** tokens (colour, type, radius, spacing) with no second palette mixed in — see [docs/design-system.md](docs/design-system.md) |
 
 No provider keys, passwords, or fleet URLs are compiled into the client bundle.
 
@@ -252,14 +291,31 @@ The rail is a **merge selector**, not a browser-owned list:
 - A Durable Object is created/activated lazily on the first `prompt` (or first `/messages` read).
 - Any valid `:name` works. Names are trimmed, capped at 64 characters, and cannot contain `/ \ ? #` or control characters. Spaces and unicode are encoded safely.
 - The **64-character cap is an intentional UI rule**, not a backend contract. Fleet-base allows names up to 128 characters, so names 65–128 characters long can be created with `curl` and will appear in the fleet directory, but the UI will not create them (the add-agent form rejects them). The lower limit keeps rail and header layouts readable.
-- The green dot comes from `GET /agent/:name/state`. That endpoint is deliberately coarse: reachable means the binding is addressable, not a true residency probe.
+- Each rail row carries a **lifecycle chip**. `GET /agent/:name/state` is deliberately coarse, so the console derives the state from what it can prove: `resident` → **idle**, a prompt in flight → **running**, a `model_error` run → **error**, a pending probe → **initializing**, an unreachable agent → **closed**. The mapping lives alone in [`lib/lifecycle.ts`](lib/lifecycle.ts) so a backend that reports real lifecycle states can replace it without touching a component.
 - Removing a shortcut does not delete the Durable Object, transcript, or model pin. Fleet/Paperclip rows reappear from their server list; local-only rows disappear.
 
-### Chat vs. durable transcript
+### Timeline, epochs and the durable transcript
 
-The **Chat** tab is a browser session log: prompts and full responses are persisted in `localStorage` (`fleet-ui.chat.v1`). It is what enables copy/export and instant history after a reload in the same browser.
+The **Chat** tab is an **agent timeline**, not a chat bubble list. Every turn renders as timeline rows, and each row type has its own rail colour, glyph and type treatment:
 
-The **Transcript** tab fetches the agent's SQLite-backed transcript from the Worker (`GET /agent/:name/messages?limit=…`). That endpoint returns only `{id, kind, preview}` entries with previews capped at 800 characters by the Worker — this UI cannot reconstruct full messages it never received. Both views are labelled accordingly.
+| Row | Source |
+|---|---|
+| **user turn** | the prompt that opened the epoch |
+| **model turn** | the Worker's answer (markdown), or the failure |
+| **tool call** | a tool named in the Worker preview (`tool:<name>` markers), tagged `shell` / `read` / `edit` / `write` / `search` |
+| **tool result** | the Worker's `pi.tool-result` preview, capped at 800 characters |
+| **permission request** | a pending approval, rendered with **disabled** approve/deny controls |
+
+**Epochs** group rows by the `submissionId` the Worker returned for a prompt — one prompt is one epoch. The epoch header shows the prompt text, the model, the timestamp, the status, and a **disabled** `Revert` control with the tooltip `needs backend checkpoint`. The Worker has no checkpoint endpoint, so the control is a labelled stub: it never claims to have reverted anything.
+
+Two proven sources feed the timeline:
+
+- The **browser run log** (`localStorage`, `fleet-ui.chat.v1`) carries the real `submissionId`, the prompt and the answer. These are the epochs.
+- The **durable transcript** (`GET /agent/:name/messages?limit=…`) carries the tool activity, but the Worker returns no `submissionId` per message. To link a durable turn to the epoch that caused it, the browser records the **highest durable message id** it has seen when it sends a prompt; a turn that starts above that watermark was appended by that prompt and is shown inside its epoch, labelled with the rule that linked it. Turns that predate every watermark stay in a separate **durable activity** group, labelled *not epoch-linked*, instead of being attached to an epoch they might not belong to. When the backend starts returning a `submissionId` per message, the grouping picks it up with no UI change.
+
+The **Transcript** tab still shows the raw server entries (`{id, kind, preview}`) with export. Both views are labelled accordingly: this UI cannot reconstruct full messages it never received.
+
+**No streaming.** A prompt POST is buffered end to end (the proxy allows a 10-minute upstream timeout) and the answer arrives in one piece. The composer footer states this: `no streaming · buffered POST · 10 min`.
 
 **Reset** invokes `POST /agent/:name/reset`, clears the server's active context, and clears the browser log for that agent.
 
@@ -289,6 +345,20 @@ The model picker in the composer sends `model` as `provider/id` (or omits it to 
 - Copy one response, copy request/operation IDs, copy the whole session log, or export Markdown/JSON.
 - The Transcript tab exports the server's preview entries as `.txt`/`.json`.
 - Browser history is capped (60 runs per agent, 80k characters per response) to keep localStorage bounded.
+
+---
+
+## Design system
+
+The console uses **one** design system, applied end to end: **[OpenCode](https://opencode.ai)**, taken from the `popular-web-designs` skill in this repo (`.agents/skills/popular-web-designs/templates/opencode.ai.md`). Colours, type, radius and spacing come from that template verbatim — no second palette is mixed in, and no raw hex or one-off spacing scale is introduced.
+
+- **Colour** — OpenCode Dark `#201d1d`, Dark Surface `#302c2c`, OpenCode Light `#fdfcfc`, Light Surface `#f1eeee`, Accent Blue `#007aff`, Success Green `#30d158`, Warning Orange `#ff9f0a`, Danger Red `#ff3b30`, Border Warm `rgba(15, 0, 0, 0.12)`.
+- **Type** — one family for UI and code (the template's mono stack), weights 400/500/700.
+- **Radius** — 4px everywhere. No pills.
+- **Depth** — flat: borders and background shifts, no shadows.
+- **Spacing** — an 8px base grid with 1/2/4px micro steps.
+
+The full token table, the console type mapping and the per-surface recipes are in **[docs/design-system.md](docs/design-system.md)**.
 
 ---
 
@@ -324,7 +394,7 @@ Open **Labs** from the sidebar. Every flag is off by default, persisted locally,
 | Flag | Stub surface | What exists | What it would need |
 |---|---|---|---|
 | `terminal` | Pane tab + Labs | Working xterm.js canvas, local banner, input disabled, no transport | PTY/WebSocket transport, shell sandbox |
-| `files` | Pane tab + Labs | Static file tree and diff mock | Node/filesystem API, diff endpoint |
+| `files` | Pane tab + Labs | Empty diff region — no file transport, so nothing is drawn | Node/filesystem API, diff endpoint |
 | `harness` | Composer badge + Labs | Disabled “Pi Durable (default)” picker | Multiple harnesses and a selector API |
 | `previews` | Labs | Inert URL preview card | Signed preview router |
 | `mcp` | Labs | Fake disconnected servers | MCP client + tool discovery |
@@ -512,8 +582,9 @@ Serve over HTTPS. The service worker is registered only when `NODE_ENV=productio
 
 ### Shipped in v1
 
-- Agent rail with server `GET /agents`, optional Paperclip directory, local fallback recents, search, reachability, and origin badges
-- Chat with request IDs, model override, latency, status/reason, IDs, copy/export/retry
+- Agent rail with server `GET /agents`, optional Paperclip directory, local fallback recents, search, lifecycle chips, and origin badges
+- Chat as an agent timeline: epoch-grouped rows (user, model, tool call, tool result, permission), request IDs, model override, latency, status/reason, IDs, copy/export/retry, disabled revert stub
+- One design system (OpenCode tokens) across the agent surface
 - Durable transcript viewer with limits and export
 - Provider dashboard with catalog, live router discovery, and search
 - 1–4 pane workspace, per-pane composers, mobile pane switcher
@@ -530,8 +601,10 @@ Serve over HTTPS. The service worker is registered only when `NODE_ENV=productio
 - Prompt history search, pinning, and multi-select export
 - Background run queue with persisted in-flight state across reloads
 - Server-side latency/token analytics instead of browser-only measurements
-- Terminal PTY transport behind the existing flag
-- Files/diff API and preview routing
+- Terminal PTY transport behind the existing flag (the canvas is a labelled stub today: *terminal — needs containers, not yet*)
+- Files/diff API and preview routing (the diff region is wired and empty until then)
+- Checkpoint/revert endpoint, so the epoch revert control can do more than label itself
+- `submissionId` per transcript message, so durable rows can join their epoch
 - MCP/skill registries
 - Vault-backed per-agent secrets
 - Node/lease operations from the UI
@@ -555,10 +628,10 @@ Fleet UI targets the fleet-base Worker API:
 | `GET /agents?limit=&prefix=` | Fleet rail directory: `{agents:[{name,lastActive,prompts}], count}`; `limit` 1–1000 (default 100), prefix filters decoded names |
 | `POST /agent/:name/prompt` | Prompt with `{prompt, requestId, model?}` |
 | `GET /agent/:name/state` | Rail/pane reachability |
-| `GET /agent/:name/messages?limit=` | Durable transcript previews |
+| `GET /agent/:name/messages?limit=` | Durable transcript previews. The server clamps `limit` to **1–100** and defaults to **20** when it is omitted |
 | `POST /agent/:name/reset` | Fresh agent context |
 
-The browser only ever requests `/api/*`. Unknown statuses/kinds are rendered defensively rather than assumed. The request ID field accepts letters, numbers, and `. _ : / = -` up to 200 characters.
+The browser only ever requests `/api/*`, which Next rewrites to the same-origin `/fleet-proxy/*` route; `FLEET_URL` is read at request time on the server and never reaches the client. That route answers `GET`, `POST`, `HEAD` and `OPTIONS`, and its `OPTIONS` response advertises `Allow: GET, POST, HEAD, OPTIONS`. Unknown statuses/kinds are rendered defensively rather than assumed. The request ID field accepts letters, numbers, and `. _ : / = -` up to 200 characters.
 
 Fleet UI also serves a non-fleet route: `GET /api/paperclip/agents` (same password gate, server-only `PAPERCLIP_*`) returns `[{name, lastActive?, source:"paperclip"}]`. It is optional and hidden when unconfigured; it is not part of the fleet-base contract.
 

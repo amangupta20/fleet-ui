@@ -28,24 +28,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMessages } from "@/hooks/use-fleet";
 import type { MessageEntry } from "@/lib/fleet-types";
+import { rowTypeForKind } from "@/lib/timeline";
 import { copyText, cn, downloadTextFile, errorMessage, formatRelativeTime, safeFileStem } from "@/lib/utils";
 import { useFleetStore } from "@/stores/fleet-store";
 
+/**
+ * Kind styling reuses the timeline row mapping (lib/timeline.ts) so the raw
+ * transcript and the agent timeline classify a message the same way.
+ */
 function kindStyle(kind: string | null): { label: string; className: string; icon: typeof Bot } {
   const value = kind ?? "unknown";
-  if (value.includes("user")) {
-    return { label: "user", className: "text-sky-600 dark:text-sky-400 border-sky-500/20 bg-sky-500/5", icon: User };
+  switch (rowTypeForKind(value)) {
+    case "user":
+      return { label: "user", className: "text-brand border-brand/30 bg-brand/5", icon: User };
+    case "model":
+      return { label: "assistant", className: "text-success border-success/30 bg-success/5", icon: Bot };
+    case "tool-call":
+    case "tool-result":
+      return { label: "tool", className: "text-warning border-warning/30 bg-warning/5", icon: Wrench };
+    default:
+      return { label: value, className: "text-muted-foreground border-border bg-muted/40", icon: Info };
   }
-  if (value.includes("assistant")) {
-    return { label: "assistant", className: "text-emerald-600 dark:text-emerald-400 border-emerald-500/20 bg-emerald-500/5", icon: Bot };
-  }
-  if (value.includes("tool")) {
-    return { label: "tool", className: "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-500/5", icon: Wrench };
-  }
-  if (value.includes("system")) {
-    return { label: "system", className: "text-violet-600 dark:text-violet-400 border-violet-500/20 bg-violet-500/5", icon: Info };
-  }
-  return { label: value, className: "text-muted-foreground border-border bg-muted/40", icon: Info };
 }
 
 function messageToText(message: MessageEntry): string {
@@ -90,15 +93,15 @@ export function TranscriptPane({ agent }: { agent: string }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-muted/15 px-2.5 py-1.5">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium">
-          <ScrollText className="h-3.5 w-3.5 text-muted-foreground" /> Durable transcript
+        <div className="flex items-center gap-1.5 text-sm font-medium">
+          <ScrollText className="size-3.5 text-muted-foreground" /> Durable transcript
         </div>
-        <Badge variant="muted" className="font-mono text-[9px]">
+        <Badge variant="muted" className="font-mono text-sm">
           previews · 800ch max
         </Badge>
         <div className="ml-auto flex items-center gap-1">
           <Select value={String(limit)} onValueChange={(value) => setTranscriptLimit(Number(value))}>
-            <SelectTrigger className="h-7 w-[92px] text-[10px]">
+            <SelectTrigger className="h-7 w-[92px] font-mono text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -114,12 +117,12 @@ export function TranscriptPane({ agent }: { agent: string }) {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="h-7 w-7"
+                className="size-7"
                 onClick={() => void query.refetch()}
                 disabled={query.isFetching}
                 aria-label="Refresh transcript"
               >
-                {query.isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                {query.isFetching ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>Refresh{lastSynced ? ` · ${lastSynced}` : ""}</TooltipContent>
@@ -129,20 +132,20 @@ export function TranscriptPane({ agent }: { agent: string }) {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="h-7 w-7"
+                className="size-7"
                 disabled={messages.length === 0}
                 aria-label="Export transcript"
               >
-                <Download className="h-3.5 w-3.5" />
+                <Download className="size-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onClick={copy}>
-                <Copy className="h-3.5 w-3.5" /> Copy
+                <Copy className="size-3.5" /> Copy
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportTranscript("txt")}>Export .txt</DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportTranscript("json")}>
-                <FileJson className="h-3.5 w-3.5" /> Export .json
+                <FileJson className="size-3.5" /> Export .json
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -154,31 +157,31 @@ export function TranscriptPane({ agent }: { agent: string }) {
           {query.isPending ? (
             <div className="space-y-2">
               {Array.from({ length: 5 }, (_, index) => (
-                <Skeleton key={index} className="h-16 w-full rounded-lg" />
+                <Skeleton key={index} className="h-16 w-full rounded" />
               ))}
             </div>
           ) : query.isError ? (
-            <div className="rounded-lg border border-destructive/25 bg-destructive/5 p-4 text-sm">
+            <div className="rounded border border-destructive/25 bg-destructive/5 p-4 text-sm">
               <p className="font-medium text-destructive">Could not load durable transcript</p>
-              <p className="mt-1 text-xs text-muted-foreground">{errorMessage(query.error)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{errorMessage(query.error)}</p>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => void query.refetch()}>
                 Retry
               </Button>
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center px-4 py-12 text-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl border bg-muted/30">
-                <ScrollText className="h-4 w-4 text-muted-foreground" />
+              <span className="flex size-10 items-center justify-center rounded border bg-muted/30">
+                <ScrollText className="size-4 text-muted-foreground" />
               </span>
-              <h3 className="mt-3 text-sm font-semibold">No durable messages yet</h3>
-              <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+              <h3 className="mt-3 text-base font-bold leading-[1.5]">No durable messages yet</h3>
+              <p className="mt-1 max-w-xs text-sm leading-[1.5] text-muted-foreground">
                 Send a prompt in the Chat tab. This view tails the agent's SQLite-backed transcript through{" "}
                 <code className="font-mono text-foreground">GET /agent/:name/messages</code>.
               </p>
             </div>
           ) : (
             <>
-              <div className="mb-3 flex items-center justify-between gap-2 px-1 text-[10px] text-muted-foreground">
+              <div className="mb-3 flex items-center justify-between gap-2 px-1 font-mono text-sm text-muted-foreground">
                 <span>
                   {messages.length} entr{messages.length === 1 ? "y" : "ies"} · last synced {lastSynced ?? "—"}
                 </span>
@@ -195,23 +198,23 @@ export function TranscriptPane({ agent }: { agent: string }) {
                     <li key={key} className="relative flex gap-2.5">
                       <span
                         className={cn(
-                          "relative z-10 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-card",
+                          "relative z-10 mt-1 flex size-7 shrink-0 items-center justify-center rounded border bg-card",
                           style.className,
                         )}
                       >
-                        <Icon className="h-3.5 w-3.5" />
+                        <Icon className="size-3.5" />
                       </span>
-                      <div className="min-w-0 flex-1 rounded-lg border bg-card/75 p-2.5 shadow-sm">
+                      <div className="min-w-0 flex-1 rounded border bg-card/75 p-2.5">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge variant="outline" className={cn("font-mono text-[9px]", style.className)}>
+                          <Badge variant="outline" className={cn("font-mono text-sm", style.className)}>
                             {style.label}
                           </Badge>
-                          <span className="font-mono text-[9px] text-muted-foreground">id {String(message.id ?? "—")}</span>
-                          <span className="ml-auto font-mono text-[9px] text-muted-foreground">#{index + 1}</span>
+                          <span className="font-mono text-sm text-muted-foreground">id {String(message.id ?? "—")}</span>
+                          <span className="ml-auto font-mono text-sm text-muted-foreground">#{index + 1}</span>
                         </div>
                         <pre
                           className={cn(
-                            "mt-2 whitespace-pre-wrap break-words font-sans text-[11px] leading-relaxed text-foreground/85",
+                            "mt-2 whitespace-pre-wrap break-words text-sm leading-[1.5] text-foreground/85",
                             long && !isExpanded && "line-clamp-[8] overflow-hidden",
                           )}
                         >
@@ -220,7 +223,7 @@ export function TranscriptPane({ agent }: { agent: string }) {
                         {long ? (
                           <button
                             type="button"
-                            className="mt-1.5 text-[10px] font-medium text-primary hover:underline"
+                            className="mt-1.5 text-sm font-medium text-brand hover:underline"
                             onClick={() => setExpanded((state) => ({ ...state, [key]: !isExpanded }))}
                           >
                             {isExpanded ? "Show less" : "Show full preview"}
@@ -231,7 +234,7 @@ export function TranscriptPane({ agent }: { agent: string }) {
                   );
                 })}
               </ol>
-              <p className="mt-3 px-1 text-[10px] leading-relaxed text-muted-foreground">
+              <p className="mt-3 px-1 font-mono text-sm leading-[1.5] text-muted-foreground">
                 Preview text is truncated by the Worker at 800 characters. Lifecycle entries (e.g.{" "}
                 <code className="font-mono">pi.system</code>) can legitimately have no text.
               </p>

@@ -76,7 +76,7 @@ export function UnlockForm({ next }: { next: string }) {
           />
         </div>
         {error ? (
-          <p id="unlock-error" role="alert" className="text-xs text-destructive">
+          <p id="unlock-error" role="alert" className="text-sm text-destructive">
             {error}
           </p>
         ) : null}
@@ -85,7 +85,7 @@ export function UnlockForm({ next }: { next: string }) {
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
         {pending ? "Unlocking…" : "Unlock console"}
       </Button>
-      <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+      <p className="text-center text-sm leading-relaxed text-muted-foreground">
         Set on the server as <code className="font-mono">FLEET_UI_PASSWORD</code>. Sessions last seven days.
       </p>
     </form>

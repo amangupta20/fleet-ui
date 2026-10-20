@@ -55,7 +55,7 @@ export function AddAgentDialog({ open, onOpenChange }: AddAgentDialogProps) {
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-primary" /> Add an agent
+              <Plus className="size-4 text-brand" /> Add an agent
             </DialogTitle>
             <DialogDescription>
               Any Durable Object name works — <code className="font-mono text-foreground">alice</code>,{" "}
@@ -85,11 +85,11 @@ export function AddAgentDialog({ open, onOpenChange }: AddAgentDialogProps) {
               />
             </div>
             {error ? (
-              <p id="agent-name-error" className="text-xs text-destructive" role="alert">
+              <p id="agent-name-error" className="text-sm text-destructive" role="alert">
                 {error}
               </p>
             ) : (
-              <p id="agent-name-hint" className="text-xs text-muted-foreground">
+              <p id="agent-name-hint" className="text-sm text-muted-foreground">
                 Stored in this browser. No agent is created on the server until the first prompt.
               </p>
             )}

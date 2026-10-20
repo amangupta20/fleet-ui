@@ -20,11 +20,11 @@ export function PaneEmpty({ index }: { index: number }) {
   return (
     <div className="pane-surface h-full items-center justify-center">
       <div className="flex w-full max-w-xs flex-col items-center px-5 text-center">
-        <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-dashed bg-muted/30">
-          <SquareDashed className="h-5 w-5 text-muted-foreground" />
+        <span className="mb-4 flex size-11 items-center justify-center rounded border border-dashed bg-muted/30">
+          <SquareDashed className="size-5 text-muted-foreground" />
         </span>
-        <h3 className="text-sm font-semibold">Pane {index + 1} is empty</h3>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        <h3 className="text-sm font-medium">Pane {index + 1} is empty</h3>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           Drop an agent here to run independent conversations side by side.
         </p>
         {agents.length > 0 ? (
@@ -36,7 +36,7 @@ export function PaneEmpty({ index }: { index: number }) {
               setPaneAgent(index, value);
             }}
           >
-            <SelectTrigger className="mt-4 h-8 w-full text-xs">
+            <SelectTrigger className="mt-4 h-8 w-full text-sm">
               <SelectValue placeholder="Choose an agent…" />
             </SelectTrigger>
             <SelectContent>
@@ -54,8 +54,8 @@ export function PaneEmpty({ index }: { index: number }) {
             </SelectContent>
           </Select>
         ) : null}
-        <Button variant="outline" size="sm" className="mt-2 h-8 w-full text-xs" onClick={() => setAddOpen(true)}>
-          <Plus className="h-3.5 w-3.5" /> New agent
+        <Button variant="outline" size="sm" className="mt-2 h-8 w-full text-sm" onClick={() => setAddOpen(true)}>
+          <Plus className="size-3.5" /> New agent
         </Button>
       </div>
       <AddAgentDialog open={addOpen} onOpenChange={setAddOpen} />
