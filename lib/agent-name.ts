@@ -29,6 +29,21 @@ export function agentPath(name: string, suffix = ""): string {
   return `/api/agent/${encodeURIComponent(name)}${suffix}`;
 }
 
+/**
+ * Display helper for names that may have arrived percent-encoded from an
+ * upstream directory. Sending always uses the canonical name + encodeURIComponent
+ * (see `agentPath`); this is only for pixels. Malformed escapes fall back to the
+ * raw value instead of throwing.
+ */
+export function decodeAgentName(raw: string): string {
+  if (!raw.includes("%")) return raw;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export function compareAgentNames(a: string, b: string): number {
   return a.localeCompare(b, undefined, { sensitivity: "base", numeric: true });
 }

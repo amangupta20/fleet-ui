@@ -61,9 +61,41 @@ export interface PromptRequestBody {
   model?: string;
 }
 
+/** One entry from fleet-base `GET /agents` (Registry DO, names only). */
+export interface ServerAgent {
+  name: string;
+  lastActive: string;
+  prompts: number;
+}
+
+export interface ServerAgentsResponse {
+  agents: ServerAgent[];
+  count: number;
+}
+
+/** Where a row in the merged agent rail came from. */
+export type AgentSource = "fleet" | "paperclip" | "local";
+
+/** Normalized Paperclip entry returned by `/api/paperclip/agents`. */
+export interface PaperclipAgent {
+  name: string;
+  lastActive?: string;
+  source: "paperclip";
+}
+
+export interface PaperclipAgentsResponse {
+  enabled: boolean;
+  agents: PaperclipAgent[];
+  count: number;
+}
+
 export interface AgentRecord {
   name: string;
   addedAt: number;
   /** Last model explicitly selected for this agent in the UI. */
   modelOverride: string | null;
+  /** Optional rail-only label. The canonical name is still used for API calls. */
+  label?: string | null;
+  /** Starred locally. Purely a rail affordance; it never changes server state. */
+  starred?: boolean;
 }

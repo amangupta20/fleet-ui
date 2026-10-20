@@ -42,7 +42,15 @@ Optional password gate:
 FLEET_UI_PASSWORD='local-secret' npm run dev
 ```
 
-Never commit `.env`, `.env.local`, provider keys, passwords, or copied `.dev.vars` files. The only tracked environment template is `.env.example`, which contains `FLEET_URL` only.
+Optional Paperclip directory (both values are server-only):
+
+```sh
+PAPERCLIP_URL='https://paperclip.example.com' \
+PAPERCLIP_API_KEY='...' \
+npm run dev
+```
+
+Never commit `.env`, `.env.local`, provider keys, passwords, Paperclip tokens, or copied `.dev.vars` files. The only tracked environment template is `.env.example`, which contains `FLEET_URL` and commented Paperclip placeholders.
 
 ## Checks before a PR
 
@@ -62,8 +70,10 @@ node scripts/smoke.mjs --prompt "say hi" --agent smoke-check --reset
 ## Architecture rules
 
 - The browser talks only to same-origin `/api/*`. The Next rewrite and Node proxy resolve `FLEET_URL` at request time so the URL stays server-side.
-- `FLEET_URL` and `FLEET_UI_PASSWORD` must never be renamed to `NEXT_PUBLIC_*`.
-- API reads/mutations go through `hooks/use-fleet.ts`; keep query keys centralized in `fleetKeys` and invalidate messages/state after prompts and resets.
+- `FLEET_URL`, `FLEET_UI_PASSWORD`, `PAPERCLIP_URL`, and `PAPERCLIP_API_KEY` must never be renamed to `NEXT_PUBLIC_*`.
+- The fleet proxy and `/api/paperclip/agents` are separate upstreams. Never forward a Paperclip key, header, or cookie to the fleet Worker, and never send fleet values to Paperclip.
+- API reads/mutations go through `hooks/use-fleet.ts`; keep query keys centralized in `fleetKeys` and invalidate `serverAgents`/messages/state after prompts.
+- The rail uses `mergeAgentRows` (union by name, fleet > paperclip > local) and must tolerate an unreachable Worker by falling back to local recents.
 - Persisted client state lives in versioned Zustand stores. If you change a persisted shape, bump the version and write a migration.
 - UI primitives follow the shadcn/ui pattern in `components/ui/`. Prefer composition and accessible Radix primitives over one-off markup.
 - Strict TypeScript is enforced, including `noUncheckedIndexedAccess`. Avoid `any`; keep API boundary types in `lib/fleet-types.ts`.

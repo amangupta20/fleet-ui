@@ -4,6 +4,15 @@ All notable changes to Fleet UI are documented here. The format is based on [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Fleet rail now reads `GET /agents` through the proxy (with `limit`/`prefix` forwarding and sanitized 502 fallback) and groups rows into Fleet / Paperclip / Local
+- Optional Paperclip directory via server-only `PAPERCLIP_URL` + `PAPERCLIP_API_KEY` and `GET /api/paperclip/agents`; hidden when unconfigured
+- `mergeAgentRows` union selector: fleet > paperclip > local precedence, activity ordering, origin badges, relative activity/prompt counts
+- Browser-local rail rename and star affordances; local shortcuts are now a fallback, not the source of truth
+- Merge-selector, Paperclip normalization, and unicode/space-name coverage in Vitest; smoke test now checks `/agents` after two prompts and an encoded unicode agent end-to-end
+- README pinned to verified fleet-base `7eb7e7b` and documents the new env contract
+
 ### Planned
 
 - Streaming prompt responses and run cancellation

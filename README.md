@@ -17,7 +17,7 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
                           same origin              runtime env          Worker API
 ```
 
-> **Status:** v0.1.0, verified against `celld dev` 0.6.2 and fleet-base at port `9876`. Future capabilities are deliberately inert Labs stubs — no fake backend calls.
+> **Status:** v0.1.0, verified against `celld dev` 0.6.2 and fleet-base at port `9876`. Pinned backend: [`7eb7e7b`](https://github.com/amangupta20/fleet-base/commit/7eb7e7bd46b1dc5ddf8049d447103d8bdfa01d0a) — `Registry` DO + `GET /agents`. Future capabilities are deliberately inert Labs stubs — no fake backend calls.
 
 ![Fleet UI workspace — dark theme, durable chat, run metadata](docs/workspace.png)
 
@@ -52,7 +52,7 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
 
 | Area | v1 behavior |
 |---|---|
-| **Agent rail** | Local agent list (`localStorage`), any Durable Object `:name`, search, add/remove, reachability dots, per-agent model label |
+| **Agent rail** | Server `GET /agents` + optional Paperclip directory + local recents, grouped **Fleet / Paperclip / Local** with origin badges; activity + prompt counts, search, add/rename/star/remove local shortcuts, reachability dots |
 | **Chat** | Prompt composer, browser session log, markdown answers, copy/export, retry, model override, live latency, `status` / `reason`, `requestId` + `submissionId` / `operationId` |
 | **Idempotency** | Auto-generated request IDs per send, manual IDs, reuse-last, same-ID retry; copy every ID |
 | **Durable transcript** | Tail `GET /agent/:name/messages` with limit selector (10–100), kind/id/preview rendering, refresh, JSON/text export |
@@ -102,7 +102,7 @@ npm run dev
 # open http://localhost:3000
 ```
 
-On first load the console seeds one browser-local agent named `main` and assigns it to pane 1. Type a prompt (or pick a suggestion) and press **Cmd/Ctrl + Enter**.
+On first load the rail fetches `GET /agents` and shows the fleet's server-side registry; local storage seeds a fallback shortcut named `main` and keeps pane/model/star preferences. Type a prompt (or pick a suggestion) and press **Cmd/Ctrl + Enter**.
 
 Optional password gate for local runs:
 
@@ -120,7 +120,7 @@ FLEET_UI_PASSWORD='change-me' npm run dev
 ┌────────────────────────────── Browser ───────────────────────────────┐
 │  React 19 + Next.js App Router                                       │
 │  ├─ TanStack Query     fleet reads / mutations                      │
-│  ├─ Zustand + localStorage  agent rail, panes, flags, session log   │
+│  ├─ Zustand + localStorage  local recents, panes, flags, chat log   │
 │  ├─ shadcn/ui + Tailwind    UI system                               │
 │  └─ xterm.js           terminal tab stub (flag-gated)               │
 └───────────────────────────────┬──────────────────────────────────────┘
@@ -129,12 +129,13 @@ FLEET_UI_PASSWORD='change-me' npm run dev
 │  Next.js server (Node runtime)                                       │
 │  ├─ rewrite /api/:path* → /fleet-proxy/:path*                       │
 │  ├─ fleet-proxy route: optional auth → fetch(`${FLEET_URL}/…`)       │
+│  ├─ /api/paperclip/agents → optional PAPERCLIP_* directory           │
 │  └─ app shell auth gate + /auth/unlock, /auth/lock                  │
 └───────────────────────────────┬──────────────────────────────────────┘
                                 │ server-to-server (no CORS)
 ┌───────────────────────────────▼──────────────────────────────────────┐
 │  fleet-base Worker (celld dev or a bucket-backed node)               │
-│  /health  /models  /agent/:name/{prompt,state,messages,reset}       │
+│  /health  /models  /agents  /agent/:name/{prompt,state,messages,…}   │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -162,7 +163,7 @@ A direct `rewrites()` destination is frozen into the production build. Routing `
 - **No CORS dependency** — the browser never contacts the Worker directly.
 - **No cookie leakage** — browser cookies are not forwarded upstream; only `content-type` and `accept` are.
 
-The route supports `GET`, `POST`, `HEAD`, and `OPTIONS`, streams the upstream response back, disables caching, and uses a 10-minute upstream timeout (prompts can be slow).
+The route supports `GET`, `POST`, `HEAD`, and `OPTIONS`, streams the upstream response back, disables caching, and uses a 10-minute upstream timeout (prompts can be slow). Query strings are forwarded untouched, so `/api/agents?limit=200&prefix=a` reaches `GET /agents?limit=200&prefix=a` on the Worker. Upstream transport failures return a sanitized `502` that never includes `FLEET_URL`.
 
 ---
 
@@ -173,13 +174,30 @@ The route supports `GET`, `POST`, `HEAD`, and `OPTIONS`, streams the upstream re
 | Variable | Required | Default | Runtime? | Purpose |
 |---|---|---|---|---|
 | `FLEET_URL` | Recommended | `http://127.0.0.1:9876` | Yes | Fleet Worker base URL used by the server-side proxy |
+| `PAPERCLIP_URL` | No | unset (hidden) | Yes | Paperclip control-plane base URL for the optional directory; server-only |
+| `PAPERCLIP_API_KEY` | No | unset (hidden) | Yes | Bearer token sent only to Paperclip; server-only secret, never committed |
 | `FLEET_UI_PASSWORD` | No | unset (gate off) | Yes | Enables the shared-password gate; never committed |
 | `PORT` | No | `3000` | Yes | Next server port |
 | `HOSTNAME` | No | `0.0.0.0` in Docker | Yes | Bind address in standalone mode |
 
-**`.env.example` intentionally contains only `FLEET_URL`.** The password is a secret and is always supplied through the runtime environment, not a committed example file. Copy the example to `.env.local` for local development (already git-ignored).
+**`.env.example` contains `FLEET_URL` plus commented Paperclip placeholders.** `FLEET_UI_PASSWORD` and `PAPERCLIP_API_KEY` are secrets and are always supplied through the runtime environment, not a committed example file. Copy the example to `.env.local` for local development (already git-ignored).
 
 `FLEET_URL` must be reachable **from the Fleet UI server**, not from the browser. It can be a private address, a tailnet name, or a container service name.
+
+#### Paperclip (optional)
+
+Set both `PAPERCLIP_URL` and `PAPERCLIP_API_KEY` to enable the Paperclip section of the rail:
+
+```sh
+PAPERCLIP_URL='https://paperclip.example.com' \
+PAPERCLIP_API_KEY='...' \
+FLEET_URL=http://127.0.0.1:9876 \
+npm run dev
+```
+
+The URL may include the API prefix (`.../api`), a company-scoped path (`.../api/companies/<id>`), or point directly at an agents endpoint; `/agents` is appended when needed and `/api/agents` when the URL has no API path. The server route `GET /api/paperclip/agents` calls it with `Authorization: Bearer $PAPERCLIP_API_KEY`, normalizes the result to `[{name, lastActive?, source:"paperclip"}]`, and returns `[]` when either value is unset. The rail hides an empty/disabled Paperclip section.
+
+The Paperclip key is **never** sent to the fleet Worker; the browser never sees either env value. A Paperclip response is never mixed into fleet authentication, and the fleet proxy does not forward browser cookies or the Paperclip header upstream.
 
 ### Provider configuration
 
@@ -223,11 +241,18 @@ See [SECURITY.md](SECURITY.md) for the threat model and reporting process.
 
 ### Agents
 
-- The rail is browser-local; adding an agent does **not** create a server record.
+The rail is a **merge selector**, not a browser-owned list:
+
+- **Fleet** — `GET /agents?limit=200` through the same-origin proxy. The Registry DO returns names, `lastActive`, and `prompts`; rows show relative activity and prompt count, sorted most-recent first.
+- **Paperclip** — optional server-only directory (above). Its section is hidden when `PAPERCLIP_URL`/`PAPERCLIP_API_KEY` are unset or the list is empty.
+- **Local** — `localStorage` recents and local-only shortcuts. This is now a **fallback**, not the source of truth. If the Worker is offline or the proxy returns a sanitized `502`, the rail still renders local recents.
+- Names are unioned across sources: **fleet wins over Paperclip, which wins over local**. One badge per row shows the winning origin; local metadata (model override, rail label, star) is retained without changing the row's source.
+- Clicking any row uses the existing chat flow: `GET /agent/:name/messages` + `POST /agent/:name/prompt`, with `encodeURIComponent` applied to the name on every request. Displayed names are decoded.
+- Adding an agent creates a local shortcut, not a server record. **Rename** changes only the rail label and **star** is browser-local; neither changes the Durable Object name.
 - A Durable Object is created/activated lazily on the first `prompt` (or first `/messages` read).
 - Any `:name` works. Names are trimmed, limited to 64 characters, and cannot contain `/ \ ? #` or control characters. Spaces and unicode are encoded safely.
 - The green dot comes from `GET /agent/:name/state`. That endpoint is deliberately coarse: reachable means the binding is addressable, not a true residency probe.
-- Removing an agent only removes the shortcut; its Durable Object and transcript remain.
+- Removing a shortcut does not delete the Durable Object, transcript, or model pin. Fleet/Paperclip rows reappear from their server list; local-only rows disappear.
 
 ### Chat vs. durable transcript
 
@@ -340,7 +365,7 @@ FLEET_URL=http://127.0.0.1:9876 npm start
 | `npm start` | Serve the production build |
 | `npm run typecheck` | `tsc --noEmit` with strict + `noUncheckedIndexedAccess` |
 | `npm run lint` | ESLint (Next core-web-vitals + TypeScript rules) |
-| `npm test` | Vitest unit tests (24 tests) |
+| `npm test` | Vitest unit tests (34 tests) |
 | `npm run check` | typecheck + lint + tests |
 | `npm run smoke` | Live API smoke test against a running UI |
 
@@ -350,7 +375,7 @@ FLEET_URL=http://127.0.0.1:9876 npm start
 npm run check
 ```
 
-Covers agent-name validation/encoding, request IDs, formatting, transcript export, auth token signing/expiry/sanitization, and login throttling. Tests do not require a backend.
+Covers agent-name validation/encoding/decoding, the three-source merge selector (duplicate names, precedence, ordering), `GET /agents` normalization plus 502/offline fallback, Paperclip URL/normalization, request IDs, formatting, transcript export, auth token signing/expiry/sanitization, and login throttling. Tests do not require a backend.
 
 ### Live smoke test
 
@@ -364,7 +389,7 @@ FLEET_UI_PASSWORD='...' \
 node scripts/smoke.mjs --prompt "say hi" --reset
 ```
 
-It exercises the same-origin proxy end-to-end: health, models, state, prompt, idempotent re-POST with the same ID, messages, and optional reset.
+It exercises the same-origin proxy end-to-end: health, models, `GET /agents?limit=200&prefix=…`, state, prompt, idempotent re-POST with the same ID, messages, and optional reset. With `--prompt` it also verifies the registry recorded two prompt POSTs and runs a **unicode + space agent name** (`--unicode-agent`, default `<agent>-λ agent`) through prompt → messages → exact-name registry lookup. Requires a fleet-base revision with the `Registry` DO (`7eb7e7b` or later).
 
 ---
 
@@ -446,11 +471,13 @@ Serve over HTTPS. The service worker is registered only when `NODE_ENV=productio
 
 ## Security notes
 
-- **No secrets in git.** `.env*` is ignored except `.env.example`; `.backend/` (local test copy), `.next/`, `.local-check/`, caches, and coverage are ignored. The example file contains only `FLEET_URL`.
+- **No secrets in git.** `.env*` is ignored except `.env.example`; `.backend/` (local test copy), `.next/`, `.local-check/`, caches, and coverage are ignored. The example file contains `FLEET_URL` and commented Paperclip placeholders only.
 - **Server-only Worker URL.** `FLEET_URL` is never emitted to the client bundle; the browser can only call same-origin `/api/*`.
+- **Server-only Paperclip key.** `PAPERCLIP_URL` and `PAPERCLIP_API_KEY` are read only by `app/api/paperclip/agents/route.ts`. The key is sent only to Paperclip as a Bearer token; it is never forwarded to `FLEET_URL`, included in `/api/*` fleet requests, exposed in `/api/paperclip/agents` responses, or written to logs. The two upstreams are independent.
 - **Auth is optional and shared.** `FLEET_UI_PASSWORD` is a single shared secret with in-memory throttling. It is not SSO, per-user authorization, or an audit system. Use network isolation for stronger guarantees.
 - **Session cookie.** HttpOnly, SameSite=Lax, Path=/, seven-day expiry, HMAC-SHA256 over an expiry timestamp with a key derived from the password. Changing the password logs everyone out. `Secure` is set when HTTPS is detected directly or via `X-Forwarded-Proto`.
-- **Proxy does not forward browser cookies upstream.** Only `content-type` and `accept` are forwarded. The Worker API is unauthenticated by design in fleet-base.
+- **Proxy does not forward browser cookies upstream.** Only `content-type` and `accept` are forwarded. The Worker API is unauthenticated by design in fleet-base. `/api/paperclip/agents` enforces the same password gate but forwards neither browser cookies nor fleet headers.
+- **localStorage is a fallback directory.** It caches recents, rail labels/stars, pane layout, and chat logs; the fleet index is server-authoritative. If the server is unreachable, the UI degrades to these recents with no blocking error.
 - **Markdown rendering is escaped** by `react-markdown`; this UI does not render raw HTML or use `dangerouslySetInnerHTML`. Links open with `rel="noreferrer noopener"`.
 - **localStorage is readable by any script on the origin.** Prompts and full responses are persisted there for the session log. Use **Settings → Clear chat history** / **Reset local workspace** on shared machines.
 - **Response headers** include `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, and a restrictive `Permissions-Policy`.
@@ -468,6 +495,8 @@ Serve over HTTPS. The service worker is registered only when `NODE_ENV=productio
 | `/unlock` redirects to `/` | The gate is off (empty/missing `FLEET_UI_PASSWORD`). |
 | Models list empty / no provider | Configure one of `ROUTER_MODEL` + `ROUTER_BASE_URL`, `OPENCODE_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` in fleet-base, then restart celld. |
 | Prompt fails with 502 | Fleet UI cannot reach the Worker from the server process. In Docker, see the host-networking note above. |
+| Fleet section missing | `FLEET_URL` is unreachable or the backend predates `GET /agents`; the rail falls back to local recents. Check `curl $FLEET_URL/agents?limit=1` from the Fleet UI host. |
+| Paperclip section missing | Set **both** `PAPERCLIP_URL` and `PAPERCLIP_API_KEY` and restart the server. Unset config is intentionally silent; check the server log for a sanitized `[paperclip]` error if both are set. |
 | Prompt takes a long time / 504 | Model latency. The proxy allows 10 minutes; the host/reverse proxy may impose a shorter timeout. |
 | PWA not installable / no service worker | Must be a production build served over HTTPS (localhost is exempt); service worker registration is intentionally disabled in dev. |
 | Stale UI after deployment | Hard reload; check the service worker update prompt. Bump the `VERSION` in `public/sw.js` when changing shell caching. |
@@ -482,7 +511,7 @@ Serve over HTTPS. The service worker is registered only when `NODE_ENV=productio
 
 ### Shipped in v1
 
-- Agent rail with any `:name`, search, reachability, model labels
+- Agent rail with server `GET /agents`, optional Paperclip directory, local fallback recents, search, reachability, and origin badges
 - Chat with request IDs, model override, latency, status/reason, IDs, copy/export/retry
 - Durable transcript viewer with limits and export
 - Provider dashboard with catalog, live router discovery, and search
@@ -496,7 +525,7 @@ Serve over HTTPS. The service worker is registered only when `NODE_ENV=productio
 
 - Streaming prompt responses (SSE/WebSocket) and a stop button
 - Full message content instead of 800-character previews
-- Create/delete agent metadata server-side (today the rail is local-only)
+- Create/delete/rename agent metadata server-side (today names come from the Registry; rail labels/stars remain local)
 - Prompt history search, pinning, and multi-select export
 - Background run queue with persisted in-flight state across reloads
 - Server-side latency/token analytics instead of browser-only measurements
@@ -522,12 +551,15 @@ Fleet UI targets the fleet-base Worker API:
 |---|---|
 | `GET /health` | Worker status chip / connectivity |
 | `GET /models` | Default, configured flags, catalog, router live ids |
+| `GET /agents?limit=&prefix=` | Fleet rail directory: `{agents:[{name,lastActive,prompts}], count}`; `limit` 1–1000 (default 100), prefix filters decoded names |
 | `POST /agent/:name/prompt` | Prompt with `{prompt, requestId, model?}` |
 | `GET /agent/:name/state` | Rail/pane reachability |
 | `GET /agent/:name/messages?limit=` | Durable transcript previews |
 | `POST /agent/:name/reset` | Fresh agent context |
 
 The browser only ever requests `/api/*`. Unknown statuses/kinds are rendered defensively rather than assumed. The request ID field accepts letters, numbers, and `. _ : / = -` up to 200 characters.
+
+Fleet UI also serves a non-fleet route: `GET /api/paperclip/agents` (same password gate, server-only `PAPERCLIP_*`) returns `[{name, lastActive?, source:"paperclip"}]`. It is optional and hidden when unconfigured; it is not part of the fleet-base contract.
 
 ---
 

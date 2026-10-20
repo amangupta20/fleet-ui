@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -8,7 +9,10 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { mergeAgentRows } from "@/lib/agent-merge";
 import {
+  fetchPaperclipAgents,
+  fetchServerAgents,
   getAgentState,
   getHealth,
   getMessages,
@@ -18,12 +22,15 @@ import {
   type PromptResult,
 } from "@/lib/fleet-api";
 import type { PromptRequestBody } from "@/lib/fleet-types";
+import { useFleetStore } from "@/stores/fleet-store";
 
 export const fleetKeys = {
   all: ["fleet"] as const,
   health: () => [...fleetKeys.all, "health"] as const,
   models: () => [...fleetKeys.all, "models"] as const,
   agents: () => [...fleetKeys.all, "agent"] as const,
+  serverAgents: () => [...fleetKeys.all, "agents", "server"] as const,
+  paperclipAgents: () => [...fleetKeys.all, "agents", "paperclip"] as const,
   state: (name: string) => [...fleetKeys.agents(), name, "state"] as const,
   messages: (name: string, limit: number) =>
     [...fleetKeys.agents(), name, "messages", limit] as const,
@@ -47,6 +54,62 @@ export function useModels() {
     retry: 1,
     refetchOnWindowFocus: true,
   });
+}
+
+/**
+ * Server-side agent index (`GET /agents` via the same-origin proxy).
+ * `fetchServerAgents` degrades to `[]` on 502/offline, so this query never
+ * blocks the rail: local recents remain usable while the Worker is down.
+ */
+export function useServerAgents() {
+  return useQuery({
+    queryKey: fleetKeys.serverAgents(),
+    queryFn: ({ signal }) => fetchServerAgents(signal),
+    staleTime: 20_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    retry: 0,
+  });
+}
+
+/** Optional Paperclip directory; disabled/misconfigured yields `enabled:false`. */
+export function usePaperclipAgents() {
+  return useQuery({
+    queryKey: fleetKeys.paperclipAgents(),
+    queryFn: ({ signal }) => fetchPaperclipAgents(signal),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    retry: 0,
+  });
+}
+
+/**
+ * The rail's single source of truth: union of the fleet index, the optional
+ * Paperclip directory, and browser-local recents. Duplicate names collapse with
+ * fleet > paperclip > local precedence.
+ */
+export function useAgentDirectory() {
+  const localAgents = useFleetStore((state) => state.agents);
+  const server = useServerAgents();
+  const paperclip = usePaperclipAgents();
+  const rows = useMemo(
+    () =>
+      mergeAgentRows({
+        server: server.data,
+        paperclip: paperclip.data?.agents,
+        local: localAgents,
+      }),
+    [localAgents, paperclip.data?.agents, server.data],
+  );
+
+  return {
+    rows,
+    localAgents,
+    server,
+    paperclip,
+    paperclipEnabled: paperclip.data?.enabled === true,
+  };
 }
 
 export function useAgentState(name: string | null) {
@@ -110,6 +173,8 @@ export function usePromptAgent() {
         queryKey: [...fleetKeys.agents(), variables.agent, "messages"],
       });
       void queryClient.invalidateQueries({ queryKey: fleetKeys.state(variables.agent) });
+      // The Registry bumps lastActive/prompts on every prompt POST.
+      void queryClient.invalidateQueries({ queryKey: fleetKeys.serverAgents() });
     },
   });
 }

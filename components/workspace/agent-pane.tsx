@@ -41,7 +41,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAgentState, useResetAgent } from "@/hooks/use-fleet";
+import { useAgentDirectory, useAgentState, useResetAgent } from "@/hooks/use-fleet";
+import { decodeAgentName } from "@/lib/agent-name";
 import { cn, errorMessage } from "@/lib/utils";
 import { useChatStore } from "@/stores/chat-store";
 import { useFleetStore } from "@/stores/fleet-store";
@@ -60,9 +61,10 @@ export function AgentPane({
   const [resetOpen, setResetOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
-  const agents = useFleetStore((state) => state.agents);
+  const { rows: agents } = useAgentDirectory();
   const features = useFleetStore((state) => state.features);
   const setPaneAgent = useFleetStore((state) => state.setPaneAgent);
+  const rememberAgent = useFleetStore((state) => state.rememberAgent);
   const runCount = useChatStore((state) =>
     agentName ? (state.runsByAgent[agentName]?.length ?? 0) : 0,
   );
@@ -81,6 +83,7 @@ export function AgentPane({
 
   if (!agentName) return <PaneEmpty index={index} />;
 
+  const displayAgentName = decodeAgentName(agentName);
   const online = stateQuery.isSuccess;
   const checking = stateQuery.isPending;
 
@@ -88,7 +91,7 @@ export function AgentPane({
     try {
       await resetAgent.mutateAsync(agentName);
       clearAgent(agentName);
-      toast.success(`Reset ${agentName}`, {
+      toast.success(`Reset ${displayAgentName}`, {
         description: "Server context cleared and browser run log removed.",
       });
       setResetOpen(false);
@@ -107,10 +110,10 @@ export function AgentPane({
               className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1 text-left outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`Switch agent in pane ${index + 1}`}
             >
-              <AgentAvatar name={agentName} size="md" />
+              <AgentAvatar name={displayAgentName} size="md" />
               <span className="min-w-0">
                 <span className="flex items-center gap-1.5">
-                  <span className="truncate text-[13px] font-semibold leading-tight">{agentName}</span>
+                  <span className="truncate text-[13px] font-semibold leading-tight">{displayAgentName}</span>
                   <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
                 </span>
                 <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground">
@@ -129,22 +132,26 @@ export function AgentPane({
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuLabel>Switch pane agent</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {agents.map((agent) => (
-              <DropdownMenuItem
-                key={agent.name}
-                disabled={agent.name === agentName}
-                onClick={() => {
-                  setPaneAgent(index, agent.name);
-                  setSwitchOpen(false);
-                }}
-              >
-                <AgentAvatar name={agent.name} size="sm" />
-                <span className="truncate">{agent.name}</span>
-                {agent.name === agentName ? (
-                  <span className="ml-auto font-mono text-[9px] text-muted-foreground">current</span>
-                ) : null}
-              </DropdownMenuItem>
-            ))}
+            {agents.map((agent) => {
+              const displayName = agent.local?.label?.trim() || decodeAgentName(agent.name);
+              return (
+                <DropdownMenuItem
+                  key={agent.name}
+                  disabled={agent.name === agentName}
+                  onClick={() => {
+                    rememberAgent(agent.name);
+                    setPaneAgent(index, agent.name);
+                    setSwitchOpen(false);
+                  }}
+                >
+                  <AgentAvatar name={displayName} size="sm" />
+                  <span className="truncate">{displayName}</span>
+                  {agent.name === agentName ? (
+                    <span className="ml-auto font-mono text-[9px] text-muted-foreground">current</span>
+                  ) : null}
+                </DropdownMenuItem>
+              );
+            })}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
@@ -179,7 +186,7 @@ export function AgentPane({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel className="truncate">{agentName}</DropdownMenuLabel>
+              <DropdownMenuLabel className="truncate">{displayAgentName}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setTab("chat")}>
                 <MessageSquareText className="h-3.5 w-3.5" /> Chat
@@ -270,7 +277,7 @@ export function AgentPane({
       <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset “{agentName}”?</AlertDialogTitle>
+            <AlertDialogTitle>Reset “{displayAgentName}”?</AlertDialogTitle>
             <AlertDialogDescription>
               This starts a fresh server context for the Durable Object: history leaves the active transcript but
               durable records remain. Browser-recorded runs for this agent will also be cleared here.

@@ -8,7 +8,7 @@ import { AgentAvatar } from "@/components/agent-avatar";
 import { AgentPane } from "@/components/workspace/agent-pane";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useModels } from "@/hooks/use-fleet";
+import { useAgentDirectory, useModels } from "@/hooks/use-fleet";
 import { cn } from "@/lib/utils";
 import { useFleetStore, type Layout } from "@/stores/fleet-store";
 
@@ -90,7 +90,7 @@ function EmptyFleet() {
 }
 
 export function Workspace() {
-  const agents = useFleetStore((state) => state.agents);
+  const directory = useAgentDirectory();
   const layout = useFleetStore((state) => state.layout);
   const setLayout = useFleetStore((state) => state.setLayout);
   const activePane = useFleetStore((state) => state.activePane);
@@ -112,7 +112,7 @@ export function Workspace() {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-background/70 px-3 py-2 md:px-4">
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">
-            {agents.length} agent{agents.length === 1 ? "" : "s"}
+            {directory.rows.length} agent{directory.rows.length === 1 ? "" : "s"}
           </span>
           <span className="h-3 w-px bg-border" />
           <span className="text-xs text-muted-foreground">
@@ -168,7 +168,7 @@ export function Workspace() {
         </div>
       </div>
 
-      {agents.length === 0 ? (
+      {directory.rows.length === 0 ? (
         <EmptyFleet />
       ) : (
         <>

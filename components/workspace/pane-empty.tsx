@@ -7,11 +7,14 @@ import { AddAgentDialog } from "@/components/add-agent-dialog";
 import { AgentAvatar } from "@/components/agent-avatar";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAgentDirectory } from "@/hooks/use-fleet";
+import { decodeAgentName } from "@/lib/agent-name";
 import { useFleetStore } from "@/stores/fleet-store";
 
 export function PaneEmpty({ index }: { index: number }) {
-  const agents = useFleetStore((state) => state.agents);
+  const { rows: agents } = useAgentDirectory();
   const setPaneAgent = useFleetStore((state) => state.setPaneAgent);
+  const rememberAgent = useFleetStore((state) => state.rememberAgent);
   const [addOpen, setAddOpen] = useState(false);
 
   return (
@@ -28,21 +31,26 @@ export function PaneEmpty({ index }: { index: number }) {
           <Select
             value=""
             onValueChange={(value) => {
-              if (value) setPaneAgent(index, value);
+              if (!value) return;
+              rememberAgent(value);
+              setPaneAgent(index, value);
             }}
           >
             <SelectTrigger className="mt-4 h-8 w-full text-xs">
               <SelectValue placeholder="Choose an agent…" />
             </SelectTrigger>
             <SelectContent>
-              {agents.map((agent) => (
-                <SelectItem key={agent.name} value={agent.name}>
-                  <span className="flex items-center gap-2">
-                    <AgentAvatar name={agent.name} size="sm" />
-                    {agent.name}
-                  </span>
-                </SelectItem>
-              ))}
+              {agents.map((agent) => {
+                const displayName = agent.local?.label?.trim() || decodeAgentName(agent.name);
+                return (
+                  <SelectItem key={agent.name} value={agent.name}>
+                    <span className="flex items-center gap-2">
+                      <AgentAvatar name={displayName} size="sm" />
+                      {displayName}
+                    </span>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         ) : null}

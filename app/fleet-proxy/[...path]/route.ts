@@ -25,6 +25,8 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
   // unicode round-trip to the Worker exactly as the browser sent them.
   const upstreamPath = (path ?? []).map((segment) => encodeURIComponent(segment)).join("/");
   const incomingUrl = new URL(request.url);
+  // Generic passthrough covers /health, /models, and GET /agents. The latter
+  // keeps its limit/prefix query string on the way to the Registry DO.
   const target = `${fleetBaseUrl()}/${upstreamPath}${incomingUrl.search}`;
 
   const headers = new Headers();

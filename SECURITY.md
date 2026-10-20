@@ -23,15 +23,16 @@ Fleet UI is a **single-user console for an unauthenticated Worker API**, not a m
 - **Network placement matters.** The Worker (`FLEET_URL`) is typically a private/loopback service. Keep it private; never expose celld directly to the internet.
 - **TLS is required in production.** The session cookie is marked `Secure` when HTTPS is detected directly or through `X-Forwarded-Proto`.
 - **Trusted proxy headers.** Only trust `X-Forwarded-*` when a reverse proxy you control sets them.
-- **Browser-local data.** Prompts, responses, agent names, pane layout, and flags are stored in `localStorage`/`session state`. This is readable by any script on the origin and persists on shared machines. Use Settings → Clear chat history or Reset local workspace.
+- **Browser-local data.** Prompts, responses, local recents, rail labels/stars, pane layout, and flags are stored in `localStorage`/`session state`. This is readable by any script on the origin and persists on shared machines. Use Settings → Clear chat history or Reset local workspace. The fleet directory itself is server-side; local storage is a fallback.
+- **Paperclip is a separate trust boundary.** `PAPERCLIP_API_KEY` is read only by the server route and sent only as a Bearer token to Paperclip. It is not forwarded to the fleet Worker, exposed in responses, or logged. Browser cookies are not forwarded to Paperclip, and fleet headers/values are not forwarded there either.
 - **No CSP is configured.** Next.js inline scripts and dev overlays make a generic CSP non-trivial. Add a deployment-specific strict CSP for hostile environments.
 - **No upstream request cookies.** The proxy forwards only `content-type` and `accept`, never browser cookies. Fleet API calls are server-to-server.
-- **Upstream errors are sanitized.** The proxy does not echo `FLEET_URL` back to the browser; it logs the target server-side.
+- **Upstream errors are sanitized.** The fleet proxy does not echo `FLEET_URL` back to the browser; the Paperclip route does not echo `PAPERCLIP_URL`, the API key, or upstream bodies. Both log sanitized server-side diagnostics.
 - **Markdown is escaped.** `react-markdown` does not render raw HTML and the app does not use `dangerouslySetInnerHTML`.
 
 ## Secrets
 
-Never commit `.env`, `.env.local`, `.dev.vars`, provider keys, passwords, bucket credentials, or deployment state. `.gitignore` excludes these; `.env.example` intentionally contains only `FLEET_URL`. If a secret is exposed, rotate it with the provider immediately and purge it from history — changing the Fleet UI password also invalidates all sessions.
+Never commit `.env`, `.env.local`, `.dev.vars`, provider keys, passwords, Paperclip API keys, bucket credentials, or deployment state. `.gitignore` excludes these; `.env.example` intentionally contains only `FLEET_URL` and commented Paperclip placeholders. If a secret is exposed, rotate it with the provider immediately and purge it from history — changing the Fleet UI password also invalidates all sessions, and rotating `PAPERCLIP_API_KEY` revokes the console's Paperclip access.
 
 ## Hardening checklist
 
@@ -40,5 +41,5 @@ Never commit `.env`, `.env.local`, `.dev.vars`, provider keys, passwords, bucket
 - [ ] Keep `FLEET_URL` on a private network / VPN / loopback
 - [ ] Add a shared rate limiter or upstream auth proxy if publicly reachable
 - [ ] Add a deployment-specific CSP
-- [ ] Restrict egress so the proxy can only reach the intended Worker
+- [ ] Restrict egress so the proxy can only reach the intended Worker and Paperclip host
 - [ ] Keep Node.js and dependencies patched

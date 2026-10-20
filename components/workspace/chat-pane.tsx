@@ -48,6 +48,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useModels, usePromptAgent } from "@/hooks/use-fleet";
+import { decodeAgentName } from "@/lib/agent-name";
 import { FleetApiError } from "@/lib/fleet-api";
 import type { CatalogModel } from "@/lib/fleet-types";
 import { isValidRequestId, generateRequestId } from "@/lib/request-id";
@@ -229,6 +230,7 @@ export function ChatPane({ agent }: { agent: string }) {
   const stickToBottom = useRef(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const startedPerf = useRef<number>(0);
+  const displayAgent = decodeAgentName(agent);
 
   const modelOverride = agentRecord?.modelOverride ?? null;
   // Manual mode keeps the compact footer indicator; opening the full panel is
@@ -493,7 +495,7 @@ export function ChatPane({ agent }: { agent: string }) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Clear browser log?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Removes {runs.length} locally stored run{runs.length === 1 ? "" : "s"} for {agent}. The durable
+                      Removes {runs.length} locally stored run{runs.length === 1 ? "" : "s"} for {displayAgent}. The durable
                       server transcript is not touched.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
@@ -565,10 +567,10 @@ export function ChatPane({ agent }: { agent: string }) {
 
           {runs.length === 0 && !pending ? (
             <div className="flex flex-col items-center px-2 pb-2 pt-6 text-center">
-              <AgentAvatar name={agent} size="lg" className="h-12 w-12 rounded-xl text-base" />
-              <h2 className="mt-3 text-base font-semibold tracking-tight">Talk to {agent}</h2>
+              <AgentAvatar name={displayAgent} size="lg" className="h-12 w-12 rounded-xl text-base" />
+              <h2 className="mt-3 text-base font-semibold tracking-tight">Talk to {displayAgent}</h2>
               <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
-                This pane is wired to the durable cell <code className="font-mono text-foreground">{agent}</code>.
+                This pane is wired to the durable cell <code className="font-mono text-foreground">{displayAgent}</code>.
                 Every prompt carries a request ID, so retries are idempotent.
               </p>
               <div className="mt-5 grid w-full gap-2 sm:grid-cols-3">
@@ -722,10 +724,10 @@ export function ChatPane({ agent }: { agent: string }) {
                 resizeTextarea();
               }}
               onKeyDown={handleKeyDown}
-              placeholder={`Message ${agent}…  (⌘↵ to send)`}
+              placeholder={`Message ${displayAgent}…  (⌘↵ to send)`}
               className="min-h-[60px] resize-none border-0 bg-transparent px-3 py-2.5 text-sm shadow-none focus-visible:ring-0"
               rows={2}
-              aria-label={`Prompt for ${agent}`}
+              aria-label={`Prompt for ${displayAgent}`}
               disabled={false}
             />
             <div className="flex items-center gap-1 border-t px-2 py-1.5">

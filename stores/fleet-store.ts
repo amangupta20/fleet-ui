@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { validateAgentName } from "@/lib/agent-name";
+import { normalizeAgentName, validateAgentName } from "@/lib/agent-name";
 import type { AgentRecord } from "@/lib/fleet-types";
 import {
   DEFAULT_FEATURE_FLAGS,
@@ -24,7 +24,11 @@ export interface FleetStore {
   autoRequestId: boolean;
   transcriptLimit: number;
   addAgent: (rawName: string) => { ok: true; name: string } | { ok: false; error: string };
+  /** Adopt a server/Paperclip name into local recents without opening it. */
+  rememberAgent: (name: string) => void;
   removeAgent: (name: string) => void;
+  renameAgent: (name: string, label: string) => void;
+  toggleAgentStar: (name: string) => void;
   setAgentModel: (name: string, model: string | null) => void;
   setLayout: (layout: Layout) => void;
   setActivePane: (index: number) => void;
@@ -36,7 +40,9 @@ export interface FleetStore {
   resetWorkspace: () => void;
 }
 
-const DEFAULT_AGENTS: AgentRecord[] = [{ name: "main", addedAt: Date.now(), modelOverride: null }];
+const DEFAULT_AGENTS: AgentRecord[] = [
+  { name: "main", addedAt: Date.now(), modelOverride: null, label: null, starred: false },
+];
 
 const INITIAL_PANES: FleetStore["panes"] = ["main", null, null, null];
 
@@ -76,10 +82,28 @@ export const useFleetStore = create<FleetStore>()(
           name: result.name,
           addedAt: Date.now(),
           modelOverride: null,
+          label: null,
+          starred: false,
         };
         set((state) => ({ agents: [...state.agents, record] }));
         get().openAgentInActivePane(result.name);
         return { ok: true, name: result.name };
+      },
+
+      rememberAgent: (rawName) => {
+        // Preserve the canonical server name (trim only). User-entered names are
+        // normalized by validateAgentName before they reach this point.
+        const name = rawName.trim();
+        if (!name) return;
+        if (get().agents.some((agent) => agent.name === name)) return;
+        const record: AgentRecord = {
+          name,
+          addedAt: Date.now(),
+          modelOverride: null,
+          label: null,
+          starred: false,
+        };
+        set((state) => ({ agents: [...state.agents, record] }));
       },
 
       removeAgent: (name) => {
@@ -92,6 +116,26 @@ export const useFleetStore = create<FleetStore>()(
             panes,
           };
         });
+      },
+
+      renameAgent: (name, rawLabel) => {
+        const label = normalizeAgentName(rawLabel);
+        if (label.length > 64) return;
+        get().rememberAgent(name);
+        set((state) => ({
+          agents: state.agents.map((agent) =>
+            agent.name === name ? { ...agent, label: label || null } : agent,
+          ),
+        }));
+      },
+
+      toggleAgentStar: (name) => {
+        get().rememberAgent(name);
+        set((state) => ({
+          agents: state.agents.map((agent) =>
+            agent.name === name ? { ...agent, starred: !agent.starred } : agent,
+          ),
+        }));
       },
 
       setAgentModel: (name, model) => {
@@ -126,6 +170,9 @@ export const useFleetStore = create<FleetStore>()(
       },
 
       openAgentInActivePane: (name) => {
+        // Clicking a server/Paperclip row adopts its name into local recents;
+        // the merged source stays fleet/paperclip thanks to precedence.
+        get().rememberAgent(name);
         const { activePane, panes, layout } = get();
         const index = Math.min(activePane, layout - 1);
         // If the agent already lives in another visible pane, focus that pane
@@ -166,7 +213,9 @@ export const useFleetStore = create<FleetStore>()(
     }),
     {
       name: "fleet-ui.store.v1",
-      version: 1,
+      // v2 adds optional rail `label`/`starred`; old records are normalized on
+      // rehydrate, so the migration can pass the persisted payload through.
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         agents: state.agents,
@@ -184,6 +233,14 @@ export const useFleetStore = create<FleetStore>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         // Guard persisted payloads written by older/newer shapes.
+        state.agents = state.agents.map((agent) => ({
+          ...agent,
+          label:
+            typeof agent.label === "string" && agent.label.trim()
+              ? normalizeAgentName(agent.label)
+              : null,
+          starred: agent.starred === true,
+        }));
         const agentNames = new Set(state.agents.map((agent) => agent.name));
         const panes = state.panes.map((pane) => (pane && agentNames.has(pane) ? pane : null)) as FleetStore["panes"];
         state.panes = panes;

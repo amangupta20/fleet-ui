@@ -3,9 +3,13 @@ import type {
   AgentStateResponse,
   MessagesResponse,
   ModelsResponse,
+  PaperclipAgent,
+  PaperclipAgentsResponse,
   PromptRequestBody,
   PromptResponse,
   ResetResponse,
+  ServerAgent,
+  ServerAgentsResponse,
 } from "./fleet-types";
 
 export class FleetApiError extends Error {
@@ -113,6 +117,98 @@ export async function getHealth(signal?: AbortSignal): Promise<string> {
 
 export function getModels(signal?: AbortSignal): Promise<ModelsResponse> {
   return request<ModelsResponse>("/api/models", { signal });
+}
+
+function normalizeServerAgents(payload: unknown): ServerAgent[] {
+  const record =
+    payload !== null && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as { agents?: unknown })
+      : null;
+  const raw = Array.isArray(payload) ? payload : Array.isArray(record?.agents) ? record.agents : [];
+  const agents = new Map<string, ServerAgent>();
+
+  for (const item of raw) {
+    if (item === null || typeof item !== "object") continue;
+    const entry = item as Record<string, unknown>;
+    const name = typeof entry.name === "string" ? entry.name.trim() : "";
+    if (!name || agents.has(name)) continue;
+    const lastActive = typeof entry.lastActive === "string" ? entry.lastActive : "";
+    const prompts =
+      typeof entry.prompts === "number" && Number.isFinite(entry.prompts)
+        ? Math.max(0, Math.floor(entry.prompts))
+        : 0;
+    agents.set(name, { name, lastActive, prompts });
+  }
+
+  return [...agents.values()];
+}
+
+/** Read the server-side agent index. Throws on transport/HTTP errors. */
+export async function getServerAgents(
+  limit = 200,
+  prefix?: string,
+  signal?: AbortSignal,
+): Promise<ServerAgent[]> {
+  const safeLimit = Math.min(1000, Math.max(1, Math.round(limit)));
+  const params = new URLSearchParams({ limit: String(safeLimit) });
+  const trimmedPrefix = prefix?.trim();
+  if (trimmedPrefix) params.set("prefix", trimmedPrefix);
+  const payload = await request<ServerAgentsResponse>(`/api/agents?${params.toString()}`, {
+    signal,
+  });
+  return normalizeServerAgents(payload);
+}
+
+/**
+ * Rail fallback: never let an unreachable Worker blank or break the UI. The
+ * proxy's sanitized 502, a network failure, or a malformed payload all degrade
+ * to the browser-local recents.
+ */
+export async function fetchServerAgents(signal?: AbortSignal): Promise<ServerAgent[]> {
+  try {
+    return await getServerAgents(200, undefined, signal);
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    return [];
+  }
+}
+
+/** Read the optional Paperclip directory through its server-only route. */
+export async function getPaperclipAgents(signal?: AbortSignal): Promise<PaperclipAgentsResponse> {
+  const payload = await request<unknown>("/api/paperclip/agents", { signal });
+  const raw = Array.isArray(payload) ? payload : [];
+  const byName = new Map<string, PaperclipAgent>();
+
+  for (const item of raw) {
+    if (item === null || typeof item !== "object") continue;
+    const entry = item as Record<string, unknown>;
+    const name = typeof entry.name === "string" ? entry.name.trim() : "";
+    if (!name || byName.has(name)) continue;
+    const lastActive = typeof entry.lastActive === "string" ? entry.lastActive : undefined;
+    byName.set(name, {
+      name,
+      ...(lastActive ? { lastActive } : {}),
+      source: "paperclip",
+    });
+  }
+
+  const agents = [...byName.values()];
+  return { enabled: agents.length > 0, agents, count: agents.length };
+}
+
+/**
+ * Paperclip is optional: disabled, offline, or misconfigured means "no section"
+ * rather than a rail error. Auth redirects still happen inside `request`.
+ */
+export async function fetchPaperclipAgents(
+  signal?: AbortSignal,
+): Promise<PaperclipAgentsResponse> {
+  try {
+    return await getPaperclipAgents(signal);
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    return { enabled: false, agents: [], count: 0 };
+  }
 }
 
 export function getAgentState(name: string, signal?: AbortSignal): Promise<AgentStateResponse> {

@@ -54,9 +54,13 @@ export function formatClock(value: number | string | Date | null | undefined): s
   }).format(date);
 }
 
-export function formatRelativeTime(value: number | null | undefined): string {
-  if (!value) return "—";
-  const deltaSeconds = Math.round((value - Date.now()) / 1000);
+export function formatRelativeTime(
+  value: number | string | Date | null | undefined,
+): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const timestamp = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return "—";
+  const deltaSeconds = Math.round((timestamp - Date.now()) / 1000);
   const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
   const thresholds: ReadonlyArray<readonly [Intl.RelativeTimeFormatUnit, number]> = [
     ["second", 60],
