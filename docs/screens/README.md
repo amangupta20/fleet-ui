@@ -36,19 +36,9 @@ soon as the backend provides a patch, and says so until then:
 
 Three candidate skins were built as parallel routes (`/demo/a`, `/demo/b`,
 `/demo/c`) with the same agent, the same `submissionId` and the same surface
-behaviour. **Demo c was picked**; its tokens are the console theme now and
-the demo routes were deleted.
-
-| Demo | Canvas | Accent | Cards | Controls | Badges |
-|---|---|---|---|---|---|
-| **a** | pure black | emerald only | 12px | 10px | pill |
-| **b** | pure black | emerald (fleet/success/selected) + cyan (interactive/links/user rows) | 12px | 10px | pill |
-| **c - picked** | pure black | emerald + cyan | 16px | 10px | pill |
-
-| a | b | c (picked) |
-|---|---|---|
-| ![Demo a - chat](demo-a-chat.png) | ![Demo b - chat](demo-b-chat.png) | ![Demo c - chat](demo-c-chat.png) |
-| ![Demo a - rail](demo-a-rail.png) | ![Demo b - rail](demo-b-rail.png) | ![Demo c - rail](demo-c-rail.png) |
-
-The pick and the deviations it carries are recorded in
-[`../design-system.md`](../design-system.md).
+behaviour. **Demo c was picked**; its tokens are the console theme now, and the
+demo routes were deleted with the selection device — so the shots of the
+candidates are not kept here. The shipped skin is what the "after" shots above
+show; the pick and the deviations it carries are recorded in
+[`../design-system.md`](../design-system.md), and the reasoning is in the pull
+request thread.
