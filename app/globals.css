@@ -4,11 +4,14 @@
 
 @layer base {
   /*
-   * Design system: OpenCode.
+   * Design system: OpenCode, with the picked console skin.
+   *
    * Source: .agents/skills/popular-web-designs/templates/opencode.ai.md
-   * Values are copied verbatim from that template. They are stored as HSL
+   * The surfaces, type and depth model come from that template; the dark
+   * theme is the skin picked from the three theme demos (see
+   * docs/design-system.md -> "Picked theme"). Values are stored as HSL
    * channel triples (same colours) because Tailwind's `/opacity` modifiers
-   * need channel triples to work. See docs/design-system.md for the mapping.
+   * need channel triples to work.
    */
   :root {
     /* OpenCode Light #fdfcfc · OpenCode Dark #201d1d */
@@ -50,43 +53,51 @@
     --success: 134.907 63.636% 50.392%;
     /* Warning Orange #ff9f0a */
     --warning: 36.49 100% 51.961%;
-    /* Radius: 4px micro (cards), 4px controls, 4px badges */
-    --radius: 4px;
-    --radius-control: 4px;
-    --radius-badge: 4px;
+    /* Radius: the picked skin - 16px cards, 10px controls, pill badges */
+    --radius: 16px;
+    --radius-control: 10px;
+    --radius-badge: 9999px;
   }
 
+  /*
+   * The picked theme (demo c): a pure black console canvas with two accents -
+   * emerald carries fleet state (success, selection), cyan carries anything
+   * interactive (links, the user turn, the active tab).
+   */
   .dark {
-    --background: 0 4.918% 11.961%;
+    --background: 0 0% 0%;
     --foreground: 0 20% 99.02%;
-    /* Dark Surface #302c2c */
-    --card: 0 4.348% 18.039%;
+    --card: 0 0% 4.706%;
     --card-foreground: 0 20% 99.02%;
-    --popover: 0 4.348% 18.039%;
+    --popover: 0 0% 4.706%;
     --popover-foreground: 0 20% 99.02%;
     --primary: 0 20% 99.02%;
     --primary-foreground: 0 4.918% 11.961%;
-    --secondary: 0 4.348% 18.039%;
+    --secondary: 0 0% 7.843%;
     --secondary-foreground: 0 20% 99.02%;
-    --muted: 0 4.348% 18.039%;
-    /* Mid Gray #9a9898 */
-    --muted-foreground: 0 0.98% 60%;
-    --accent: 0 4.348% 18.039%;
+    --muted: 0 0% 7.843%;
+    --muted-foreground: 0 0% 54.118%;
+    --accent: 0 0% 7.843%;
     --accent-foreground: 0 20% 99.02%;
     --destructive: 3.188 100% 59.412%;
     --destructive-foreground: 0 20% 99.02%;
-    /* Border Gray #646262 */
-    --border: 0 1.01% 38.824%;
+    --border: 0 0% 14.902%;
     --border-alpha: 1;
-    --input: 0 1.01% 38.824%;
-    --ring: 211.294 100% 50%;
-    --sidebar: 0 4.348% 18.039%;
+    --input: 0 0% 14.902%;
+    /* Cyan - the interactive accent */
+    --ring: 187.941 85.714% 53.333%;
+    --sidebar: 0 0% 0%;
     --sidebar-foreground: 0 20% 99.02%;
-    --sidebar-accent: 0 20% 99.02%;
-    --sidebar-accent-alpha: 0.06;
-    --sidebar-accent-hover: 0 20% 99.02%;
-    --sidebar-accent-hover-alpha: 0.12;
-    --sidebar-border: 0 1.01% 38.824%;
+    /* Selection is a fleet state, so it reads emerald */
+    --sidebar-accent: 143.077 33.333% 7.647%;
+    --sidebar-accent-alpha: 1;
+    --sidebar-accent-hover: 141.176 29.825% 11.176%;
+    --sidebar-accent-hover-alpha: 1;
+    --sidebar-border: 0 0% 14.902%;
+    /* Cyan - interactive */
+    --accent-brand: 187.941 85.714% 53.333%;
+    /* Success Green #30d158 - fleet, success, selected */
+    --success: 134.907 63.636% 50.392%;
   }
 
   * {

@@ -101,11 +101,11 @@ Fleet UI smoke → http://127.0.0.1:3000
 All smoke checks passed.
 ```
 
-## 6. The theme demos show the same agent and the same submissionId
+## 6. The theme demos showed the same agent and the same submissionId
 
-`/demo/a`, `/demo/b` and `/demo/c` are the same console with a different
-skin. A headless pass loads each route with the same seeded browser state and
-asserts the agent, the epoch key, the disabled revert control, the timeline
+`/demo/a`, `/demo/b` and `/demo/c` were the same console with a different
+skin. A headless pass loaded each route with the same seeded browser state and
+asserted the agent, the epoch key, the disabled revert control, the timeline
 rows and the lifecycle chip:
 
 ```
@@ -118,6 +118,17 @@ All demos render the same agent + submissionId.
 
 `submissionId` is `smoke_1792500534983_5cq3nq` in all three — the same real
 id the epoch header renders in the screenshots.
+
+**Demo c was picked** and its tokens are the console theme now; the demo routes
+were deleted with the selection device:
+
+```
+$ curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/demo/a
+404
+```
+
+The shipped console renders the picked theme with the same agent and the same
+epoch key (`docs/screens/after-chat.png`).
 
 ## 7. Static checks
 

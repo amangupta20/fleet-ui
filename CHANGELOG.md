@@ -20,6 +20,13 @@ All notable changes to Fleet UI are documented here. The format is based on [Kee
 
 ### Changed
 
+- **Console theme**: the dark theme is now the skin picked from three theme
+  demos — a pure black canvas, emerald for fleet state (success, the `FLEET`
+  badge, the selected row) and cyan for anything interactive (links, the user
+  turn, the active tab), 16px cards, 10px controls, pill badges. Type,
+  spacing and the flat zero-shadow depth model stay on the OpenCode template.
+- Epoch metadata collapses to one line with an expandable **Run details**
+  block; the watermark rule moved into a tooltip; helper rows are 12px gray.
 - The Files & diffs surface no longer draws a sample file tree or a sample diff; it renders the wired-but-empty diff region and says what the Worker does not return
 - The terminal stub keeps the disabled xterm canvas but drops the fake shell prompt, and is labelled `terminal — needs containers, not yet`
 

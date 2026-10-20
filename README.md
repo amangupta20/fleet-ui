@@ -321,15 +321,16 @@ The model picker in the composer sends `model` as `provider/id` (or omits it to 
 
 ## Design system
 
-The console uses **one** design system, applied end to end: **[OpenCode](https://opencode.ai)**, taken from the `popular-web-designs` skill in this repo (`.agents/skills/popular-web-designs/templates/opencode.ai.md`). Colours, type, radius and spacing come from that template verbatim — no second palette is mixed in, and no raw hex or one-off spacing scale is introduced.
+The console uses **one** design system, applied end to end: **[OpenCode](https://opencode.ai)**, taken from the `popular-web-designs` skill in this repo (`.agents/skills/popular-web-designs/templates/opencode.ai.md`). Type, spacing and the depth model come from that template; the dark theme is the console skin picked from three theme demos (black canvas, emerald + cyan, 16px cards) — no second palette is mixed in, and no raw hex or one-off spacing scale is introduced.
 
-- **Colour** — OpenCode Dark `#201d1d`, Dark Surface `#302c2c`, OpenCode Light `#fdfcfc`, Light Surface `#f1eeee`, Accent Blue `#007aff`, Success Green `#30d158`, Warning Orange `#ff9f0a`, Danger Red `#ff3b30`, Border Warm `rgba(15, 0, 0, 0.12)`.
-- **Type** — one family for UI and code (the template's mono stack), weights 400/500/700.
-- **Radius** — 4px everywhere. No pills.
+- **Colour (dark)** — canvas `#000000`, cards `#0c0c0c`, muted `#141414`, borders `#262626`, muted text `#8a8a8a`; **emerald `#30d158`** for fleet state (success, the `FLEET` badge, the selected row), **cyan `#22d3ee`** for anything interactive (links, the user turn, the active tab), Warning Orange `#ff9f0a`, Danger Red `#ff3b30`.
+- **Colour (light)** — the OpenCode light palette: OpenCode Light `#fdfcfc`, Input Light `#f8f7f7`, Light Surface `#f1eeee`, Accent Blue `#007aff`, Success Green `#30d158`, Border Warm `rgba(15, 0, 0, 0.12)`.
+- **Type** — one family for UI and code (the template's mono stack), weights 400/500/700, sizes 14px / 16px.
+- **Radius** — 16px cards, 10px controls, pill badges.
 - **Depth** — flat: borders and background shifts, no shadows.
 - **Spacing** — an 8px base grid with 1/2/4px micro steps.
 
-The full token table, the console type mapping and the per-surface recipes are in **[docs/design-system.md](docs/design-system.md)**.
+The full token table, the pick record, the console type mapping and the per-surface recipes are in **[docs/design-system.md](docs/design-system.md)**.
 
 ---
 

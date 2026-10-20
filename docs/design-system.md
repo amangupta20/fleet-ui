@@ -28,31 +28,38 @@ own spec forbids warm chrome), so an `error` lifecycle chip would need a token
 that is not in the system; Raycast documents no light mode, so the light theme
 would be invented.
 
-## Tokens (verbatim)
+## Tokens
 
-Every value below is copied from the template. The CSS variables store the
-same colours as **HSL channel triples** (`H S% L%`) because Tailwind's
-`/opacity` modifiers need a channel triple to work; the colour is unchanged.
-Alpha-baked borders keep their own alpha variable for the same reason.
+The light theme is the OpenCode template's palette, verbatim. The dark theme
+is the **picked** console skin (see *Picked theme* below): the template's
+type, spacing and depth model with a black canvas and two accents.
 
-### Colour — dark theme (`.dark`)
+The CSS variables store the same colours as **HSL channel triples** (`H S% L%`)
+because Tailwind's `/opacity` modifiers need a channel triple to work; the
+colour is unchanged. Alpha-baked borders keep their own alpha variable for the
+same reason.
 
-| Role | Token | Template value |
+### Colour — dark theme (`.dark`, the picked skin)
+
+| Role | Token | Value |
 |---|---|---|
-| Page background | `--background` | OpenCode Dark `#201d1d` |
-| Elevated surface (card, popover, sidebar) | `--card` / `--popover` / `--sidebar` | Dark Surface `#302c2c` |
+| Page background | `--background` | `#000000` |
+| Elevated surface (card, popover) | `--card` / `--popover` | `#0c0c0c` |
 | Primary text | `--foreground` | OpenCode Light `#fdfcfc` |
 | Primary fill (button) | `--primary` | OpenCode Light `#fdfcfc` (inverted for dark) |
-| Secondary / muted surface | `--secondary` / `--muted` / `--accent` | Dark Surface `#302c2c` |
-| Muted text | `--muted-foreground` | Mid Gray `#9a9898` |
-| Border / input | `--border` / `--input` + `--border-alpha` | Border Gray `#646262` |
-| Focus ring | `--ring` | Accent Blue `#007aff` |
-| Interactive accent | `--accent-brand` | Accent Blue `#007aff` |
-| Success | `--success` | Success Green `#30d158` |
+| Secondary / muted surface | `--secondary` / `--muted` / `--accent` | `#141414` |
+| Muted text | `--muted-foreground` | `#8a8a8a` |
+| Border / input | `--border` / `--input` + `--border-alpha` | `#262626` |
+| Focus ring | `--ring` | Cyan `#22d3ee` |
+| Interactive accent | `--accent-brand` | Cyan `#22d3ee` |
+| Success / fleet state | `--success` | Success Green `#30d158` |
 | Warning / permission | `--warning` | Warning Orange `#ff9f0a` |
 | Danger | `--destructive` | Danger Red `#ff3b30` |
+| Sidebar surface | `--sidebar` | `#000000` |
+| Sidebar selection | `--sidebar-accent` + `--sidebar-accent-alpha` | emerald tint `#0d1a12` |
+| Sidebar selection hover | `--sidebar-accent-hover` + `--sidebar-accent-hover-alpha` | emerald tint `#14251a` |
 
-### Colour — light theme (`:root`)
+### Colour — light theme (`:root`, the OpenCode template)
 
 | Role | Token | Template value |
 |---|---|---|
@@ -94,14 +101,20 @@ place:
 
 One adaptation is on record: the caption leading is `1.5` instead of the
 template's relaxed `2.0`, because `2.0` is the template's *footnote*
-leading and a console rail cannot afford it. Everything else — family,
-weights, sizes, colour, radius, spacing — is the template's.
+leading and a console rail cannot afford it. Family, weights and sizes are the
+template's; the dark theme's colour and radius are the picked skin.
 
 ### Radius
 
 The template allows two radii: `4px` (micro, everything) and `6px` (inputs).
-The console uses the 4px micro radius everywhere (`--radius: 4px`); no pills,
-no large radii. The template's other radii are not in use yet.
+The picked skin widens them into three tokens so a theme can vary them
+independently:
+
+| Token | Value | Used for |
+|---|---|---|
+| `--radius` | `16px` | cards, panels, the epoch header |
+| `--radius-control` | `10px` | inputs, buttons, selects |
+| `--radius-badge` | `9999px` | badges, chips |
 
 ### Spacing
 
@@ -131,8 +144,12 @@ renders an elevation shadow.
 
 ## Deviations on record
 
-- **Caption leading** is `text-sm`'s 1.25rem instead of the template's
-  relaxed 2.0 (footnote leading).
+- **The dark theme is the picked skin** (see *Picked theme*): a black canvas,
+  cyan as the interactive accent, 16px cards, 10px controls and pill badges
+  instead of the template's 4px micro radius. The light theme keeps the
+  template's palette.
+- **Caption leading** is `1.5` instead of the template's relaxed 2.0
+  (footnote leading).
 - **Tool output and diffs** use a bordered mono block, not the shadcn
   `CodeBlock` primitive: the repo has no `code-block` component, and adding
   one is a new dependency, which `AGENTS.md` only allows with a spec line.
@@ -150,38 +167,41 @@ reading the CSS variables — xterm cannot parse an HSL channel triple. They
 are the same colours as `--background`, `--foreground`, `--success` and
 `--ring`.
 
-## Theme demos (skin pass)
+## Picked theme
 
-Three candidate skins for the agent surface, live at `/demo/a`, `/demo/b` and
-`/demo/c` in this build (`app/demo/demo-theme.css`). Same console, same agent,
-same `submissionId`; only the skin differs.
+Three candidate skins were built as parallel routes (`/demo/a`, `/demo/b`,
+`/demo/c`) with the same agent, the same `submissionId` and the same surface
+behaviour. **Demo c was picked** and its tokens are now the console theme in
+`app/globals.css`; the demo routes were deleted with the selection device.
 
-| Demo | Canvas | Accent | Cards | Controls | Badges |
+| | Canvas | Accent | Cards | Controls | Badges |
 |---|---|---|---|---|---|
 | **a** | `#000000` | emerald only | 12px | 10px | pill |
-| **b** | `#000000` | emerald (fleet / success / selected) + cyan (interactive / links / user rows) | 12px | 10px | pill |
-| **c** | `#000000` | emerald + cyan | 16px | 10px | pill |
+| **b** | `#000000` | emerald + cyan | 12px | 10px | pill |
+| **c - picked** | `#000000` | emerald + cyan | 16px | 10px | pill |
 
-Shots: [`docs/screens/`](screens/README.md).
+The pick record (shots and the reasoning) is in the PR thread; the shots stay
+in [`docs/screens/`](screens/README.md).
 
-### Pick
+### What the picked theme changes
 
-**Pending — Awaiting Aman.** The winner becomes the real theme in
-`app/globals.css`; the two losing demo routes are deleted and the demo CSS
-goes with them.
+- **Canvas** - pure black `#000000` with `#0c0c0c` cards, `#141414` muted
+  surfaces and `#262626` borders, instead of OpenCode Dark `#201d1d` /
+  `#302c2c` / `#646262`.
+- **Two accents** - emerald `#30d158` carries fleet state (success, the `FLEET`
+  badge, the selected row), cyan `#22d3ee` carries anything interactive
+  (links, the user turn, the active tab, the pane badge). Accent Blue
+  `#007aff` is no longer used in the dark theme; the light theme keeps it,
+  because the picked cyan is illegible on a light surface.
+- **Radius** - 16px cards, 10px controls, pill badges, instead of the 4px
+  micro radius. The three tokens (`--radius`, `--radius-control`,
+  `--radius-badge`) are what let a skin vary them independently.
+- **Helper rows** - the muted notes under a row are 12px gray; the console
+  ramp itself stays 14px / 16px.
 
-### Deviations these skins carry from the OpenCode template
-
-- Canvas `#000000` instead of OpenCode Dark `#201d1d`.
-- Accents: Success Green `#30d158` (emerald) and `#22d3ee` (cyan) instead of
-  Accent Blue `#007aff`.
-- Radius: 12px / 16px cards, 10px controls, pill badges instead of the 4px
-  micro radius.
-- Helper rows at 12px gray; the console ramp itself stays 14px / 16px.
-
-Behaviour is untouched by the skin: timeline rows, epoch grouping, the
-lifecycle chip, the disabled revert stub, the terminal stub and the empty diff
-region are the same in all three.
+Everything else is still the OpenCode template: one family, weights
+400/500/700, the flat zero-shadow depth model, the 8px spacing grid, and the
+same surfaces, type and layout.
 
 ## Rules
 
