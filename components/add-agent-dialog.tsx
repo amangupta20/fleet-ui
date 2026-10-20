@@ -100,7 +100,7 @@ export function AddAgentDialog({ open, onOpenChange }: AddAgentDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              <Plus className="h-4 w-4" /> Add agent
+              <Plus className="size-4" /> Add agent
             </Button>
           </DialogFooter>
         </form>

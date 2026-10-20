@@ -160,7 +160,7 @@ export function AgentPane({
                 setAddOpen(true);
               }}
             >
-              <Plus className="size-3.5" /> Add new agent
+              <Plus /> Add new agent
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -175,7 +175,7 @@ export function AgentPane({
                 onClick={() => setTab("transcript")}
                 aria-label="Open durable transcript"
               >
-                <ScrollText className="size-3.5" />
+                <ScrollText />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Durable transcript</TooltipContent>
@@ -190,17 +190,17 @@ export function AgentPane({
               <DropdownMenuLabel className="truncate">{displayAgentName}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setTab("chat")}>
-                <MessageSquareText className="size-3.5" /> Chat
+                <MessageSquareText /> Chat
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTab("transcript")}>
-                <ScrollText className="size-3.5" /> Durable transcript
+                <ScrollText /> Durable transcript
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => setResetOpen(true)}
               >
-                <RotateCcw className="size-3.5" /> Reset agent
+                <RotateCcw /> Reset agent
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -214,7 +214,7 @@ export function AgentPane({
               value="chat"
               className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
             >
-              <MessageSquareText className="size-3.5" />
+              <MessageSquareText />
               Chat
               {runCount > 0 ? (
                 <span className="rounded bg-muted px-1 font-mono text-sm text-muted-foreground">{runCount}</span>
@@ -224,7 +224,7 @@ export function AgentPane({
               value="transcript"
               className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
             >
-              <ScrollText className="size-3.5" />
+              <ScrollText />
               Transcript
             </TabsTrigger>
             {features.terminal ? (
@@ -232,7 +232,7 @@ export function AgentPane({
                 value="terminal"
                 className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
               >
-                <SquareTerminal className="size-3.5" />
+                <SquareTerminal />
                 Terminal
                 <span className="rounded bg-warning/10 px-1 font-mono text-sm text-warning">
                   stub
@@ -244,7 +244,7 @@ export function AgentPane({
                 value="files"
                 className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
               >
-                <FileDiff className="size-3.5" />
+                <FileDiff />
                 Files
               </TabsTrigger>
             ) : null}

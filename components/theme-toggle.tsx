@@ -30,9 +30,9 @@ export function ThemeToggle({ className }: { className?: string }) {
           aria-label={`Change theme (currently ${mounted ? (theme ?? "system") : "system"})`}
         >
           {mounted && resolvedTheme === "dark" ? (
-            <Moon className="h-4 w-4" />
+            <Moon className="size-4" />
           ) : (
-            <Sun className="h-4 w-4" />
+            <Sun className="size-4" />
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -40,13 +40,13 @@ export function ThemeToggle({ className }: { className?: string }) {
         <DropdownMenuLabel>Appearance</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem checked={mounted && theme === "light"} onCheckedChange={() => setTheme("light")}>
-          <Sun className="mr-1.5 h-3.5 w-3.5" /> Light
+          <Sun className="mr-1.5 size-3.5" /> Light
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem checked={mounted && theme === "dark"} onCheckedChange={() => setTheme("dark")}>
-          <Moon className="mr-1.5 h-3.5 w-3.5" /> Dark
+          <Moon className="mr-1.5 size-3.5" /> Dark
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem checked={mounted && theme === "system"} onCheckedChange={() => setTheme("system")}>
-          <Laptop className="mr-1.5 h-3.5 w-3.5" /> System
+          <Laptop className="mr-1.5 size-3.5" /> System
         </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -124,7 +124,7 @@ export function TerminalStub({ agent }: { agent: string }) {
           stub
         </Badge>
         <span className="ml-auto flex items-center gap-1.5 text-sm">
-          <WifiOff className="size-3" /> local xterm only · agent {agent}
+          <WifiOff /> local xterm only · agent {agent}
         </span>
       </div>
       <div className="min-h-0 flex-1 p-2">

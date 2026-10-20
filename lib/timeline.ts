@@ -311,7 +311,9 @@ function epochsFromRuns(runs: readonly ChatRun[]): TimelineEpoch[] {
     latest.set(epochKey(run), run);
   }
   return [...latest.values()].map((run) => {
-    const submissionId = run.submissionId ?? run.operationId ?? null;
+    // The Worker's submissionId, or null when the run never got one. The epoch
+    // key falls back to the operation id (see `epochKey`).
+    const submissionId = run.submissionId ?? null;
     const status = run.status === "done" ? "done" : run.status === "unanswered" ? "unanswered" : "error";
     const rows: TimelineRow[] = [
       userRow(`${run.id}-user`, run.prompt, "done"),

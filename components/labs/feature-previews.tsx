@@ -66,7 +66,7 @@ export function PreviewsPreview() {
     <Frame note="A preview router needs signed upstream support first.">
       <div className="space-y-2 p-3">
         <div className="flex items-center gap-2 rounded-md border bg-background px-2.5 py-2 font-mono text-sm text-muted-foreground">
-          <CloudOff className="h-3.5 w-3.5" />
+          <CloudOff className="size-3.5" />
           https://preview.example.invalid/agent/main
         </div>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -88,11 +88,11 @@ export function McpPreview() {
           { name: "postgres", tools: 0 },
         ].map((server) => (
           <div key={server.name} className="flex items-center gap-2 px-3 py-2 text-sm">
-            <Server className="h-3.5 w-3.5 text-muted-foreground" />
+            <Server className="size-3.5 text-muted-foreground" />
             <span className="font-mono">{server.name}</span>
             <span className="ml-auto text-sm text-muted-foreground">disconnected</span>
-            <Button variant="ghost" size="icon-sm" className="h-6 w-6" disabled aria-label={`Add ${server.name}`}>
-              <Plus className="h-3 w-3" />
+            <Button variant="ghost" size="icon-sm" className="size-6" disabled aria-label={`Add ${server.name}`}>
+              <Plus className="size-3" />
             </Button>
           </div>
         ))}
@@ -110,7 +110,7 @@ export function SkillsPreview() {
             key={skill}
             className="inline-flex items-center gap-1 rounded border bg-background px-2 py-1 font-mono text-sm text-muted-foreground"
           >
-            <Lock className="h-2.5 w-2.5" /> {skill}
+            <Lock className="size-2.5" /> {skill}
           </span>
         ))}
       </div>
@@ -127,7 +127,7 @@ export function QueuesPreview() {
           { name: "release-summary", schedule: "manual", state: "paused" },
         ].map((queue) => (
           <div key={queue.name} className="flex items-center gap-2 px-3 py-2 text-sm">
-            <Play className="h-3 w-3 text-muted-foreground" />
+            <Play className="size-3 text-muted-foreground" />
             <span className="font-mono">{queue.name}</span>
             <span className="ml-auto font-mono text-sm text-muted-foreground">{queue.schedule}</span>
             <Badge variant="muted" className="text-sm">{queue.state}</Badge>
@@ -144,10 +144,10 @@ export function VaultPreview() {
       <div className="divide-y">
         {["ROUTER_API_KEY", "OPENCODE_API_KEY", "OPENAI_API_KEY"].map((key) => (
           <div key={key} className="flex items-center gap-2 px-3 py-2 text-sm">
-            <KeyRound className="h-3 w-3 text-muted-foreground" />
+            <KeyRound className="size-3 text-muted-foreground" />
             <span className="font-mono">{key}</span>
             <span className="ml-auto font-mono text-muted-foreground">••••••••</span>
-            <Lock className="h-3 w-3 text-muted-foreground" />
+            <Lock className="size-3 text-muted-foreground" />
           </div>
         ))}
       </div>
@@ -199,7 +199,7 @@ export function AnalyticsPreview() {
         <div className="mt-2 flex justify-between text-sm text-muted-foreground">
           <span>runs / week</span>
           <span className="flex items-center gap-1">
-            <CircleSlash className="h-2.5 w-2.5" /> sample shape only
+            <CircleSlash className="size-2.5" /> sample shape only
           </span>
         </div>
       </div>

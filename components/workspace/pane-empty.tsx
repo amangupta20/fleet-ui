@@ -55,7 +55,7 @@ export function PaneEmpty({ index }: { index: number }) {
           </Select>
         ) : null}
         <Button variant="outline" size="sm" className="mt-2 h-8 w-full text-sm" onClick={() => setAddOpen(true)}>
-          <Plus className="size-3.5" /> New agent
+          <Plus /> New agent
         </Button>
       </div>
       <AddAgentDialog open={addOpen} onOpenChange={setAddOpen} />

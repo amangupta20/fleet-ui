@@ -23,7 +23,7 @@ export function FilesStub({ agent }: { agent: string }) {
           stub
         </Badge>
         <span className="ml-auto flex items-center gap-1 text-sm text-muted-foreground">
-          <Lock className="size-3" /> read-only placeholder · {agent}
+          <Lock /> read-only placeholder · {agent}
         </span>
       </div>
 

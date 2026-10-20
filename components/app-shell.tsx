@@ -46,7 +46,7 @@ function ConsoleSkeleton() {
         <div className="mt-5 space-y-2.5">
           {Array.from({ length: 4 }, (_, index) => (
             <div key={index} className="flex items-center gap-2">
-              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="size-8 rounded-md" />
               <div className="flex-1 space-y-1.5">
                 <Skeleton className="h-3 w-2/3" />
                 <Skeleton className="h-2.5 w-1/2" />
@@ -101,13 +101,13 @@ export function AppShell({
           <header className="relative z-20 flex h-14 shrink-0 items-center gap-3 border-b bg-background/85 px-3 backdrop-blur md:px-5">
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Open navigation">
-                <Menu className="h-4 w-4" />
+                <Menu className="size-4" />
               </Button>
             </SheetTrigger>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="truncate text-base font-bold leading-[1.5]">{meta.title}</h1>
-                <span className="hidden h-1 w-1 rounded-full bg-border sm:block" />
+                <span className="hidden size-1 rounded-full bg-border sm:block" />
                 <p className="hidden truncate text-sm text-muted-foreground sm:block">{meta.subtitle}</p>
               </div>
             </div>

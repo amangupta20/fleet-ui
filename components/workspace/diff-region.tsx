@@ -37,7 +37,7 @@ export function DiffRegion({
 
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
         <div className="rounded-lg border bg-background/40 p-2">
-          <div className="font-mono text-sm uppercase tracking-[0.1em] text-muted-foreground">
+          <div className="label-caps">
             before
           </div>
           <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-sm leading-[1.5] text-foreground/80">
@@ -45,7 +45,7 @@ export function DiffRegion({
           </pre>
         </div>
         <div className="rounded-lg border bg-background/40 p-2">
-          <div className="font-mono text-sm uppercase tracking-[0.1em] text-muted-foreground">
+          <div className="label-caps">
             after
           </div>
           <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-sm leading-[1.5] text-foreground/80">

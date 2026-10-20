@@ -202,7 +202,7 @@ export function TranscriptPane({ agent }: { agent: string }) {
                           style.className,
                         )}
                       >
-                        <Icon className="size-3.5" />
+                        <Icon />
                       </span>
                       <div className="min-w-0 flex-1 rounded border bg-card/75 p-2.5">
                         <div className="flex flex-wrap items-center gap-1.5">

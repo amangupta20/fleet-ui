@@ -22,7 +22,7 @@ export function LockButton() {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button variant="ghost" size="icon-sm" onClick={lock} disabled={pending} aria-label="Lock Fleet UI">
-          <LockKeyhole className="h-4 w-4" />
+          <LockKeyhole className="size-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>Lock console</TooltipContent>

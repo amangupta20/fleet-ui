@@ -192,11 +192,17 @@ function EpochHeader({
   return (
     <header className="rounded-lg border bg-muted/25 px-2.5 py-2">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-sm uppercase tracking-[0.12em] text-muted-foreground">
+        <span className="label-caps">
           epoch
         </span>
         <span className="font-mono text-sm text-brand">
-          {epoch.submissionId ? <CopyId label="submission ID" value={epoch.submissionId} /> : submissionLabel}
+          {epoch.submissionId ? (
+            <CopyId label="submission ID" value={epoch.submissionId} />
+          ) : epoch.id === "inflight" ? (
+            submissionLabel
+          ) : (
+            <CopyId label="epoch ID" value={epoch.id} />
+          )}
         </span>
         {statusBadge(epoch)}
         <div className="ml-auto flex items-center gap-1">
@@ -307,7 +313,7 @@ export function AgentTimeline({
         <section aria-label="Durable activity">
           <div className="rounded-lg border border-dashed bg-muted/15 px-2.5 py-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-sm uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="label-caps">
                 durable activity
               </span>
               <Badge variant="muted">worker transcript</Badge>

@@ -160,6 +160,11 @@
     @apply text-xs leading-[1.4] text-muted-foreground;
   }
 
+  /* The one uppercase-label recipe (mono, small caps, tracked out). */
+  .label-caps {
+    @apply font-mono text-sm uppercase tracking-[0.1em] text-muted-foreground;
+  }
+
   .hairline {
     @apply border-border;
   }

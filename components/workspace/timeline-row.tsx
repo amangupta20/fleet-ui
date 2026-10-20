@@ -48,7 +48,7 @@ function RowFrame({
     <div className={cn("border-l-2 pl-3", RAIL[row.type])} data-row-type={row.type}>
       <div className="flex items-center gap-1.5">
         <span className="text-muted-foreground">{glyph}</span>
-        <span className="font-mono text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
+        <span className="label-caps">
           {row.title}
         </span>
         {row.category ? <Badge variant="outline">{row.category}</Badge> : null}

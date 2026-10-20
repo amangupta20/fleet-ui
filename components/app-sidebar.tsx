@@ -105,7 +105,7 @@ function SectionHeading({
   return (
     <div className="mb-1 flex items-center gap-1.5 px-1.5">
       <Icon className="size-3 text-muted-foreground" />
-      <span className="text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">
+      <span className="label-caps">
         {title}
       </span>
       <span className="rounded bg-muted px-1 font-mono text-sm text-muted-foreground">
@@ -328,7 +328,7 @@ export function SidebarContent({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => selectAgent(row.name)}>
-                <LayoutDashboard className="size-3.5" /> Open in active pane
+                <LayoutDashboard /> Open in active pane
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -340,16 +340,16 @@ export function SidebarContent({
                 <Download className="rotate-180" /> Copy API name
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openRename(row)}>
-                <Pencil className="size-3.5" /> Rename rail label
+                <Pencil /> Rename rail label
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toggleStar(row)}>
                 {starred ? (
                   <>
-                    <StarOff className="size-3.5" /> Remove star
+                    <StarOff /> Remove star
                   </>
                 ) : (
                   <>
-                    <Star className="size-3.5" /> Star locally
+                    <Star /> Star locally
                   </>
                 )}
               </DropdownMenuItem>
@@ -360,7 +360,7 @@ export function SidebarContent({
                     className="text-destructive focus:text-destructive"
                     onClick={() => setRemoveTarget(row)}
                   >
-                    <Trash2 className="size-3.5" /> Remove local shortcut
+                    <Trash2 /> Remove local shortcut
                   </DropdownMenuItem>
                 </>
               ) : null}
@@ -414,7 +414,7 @@ export function SidebarContent({
       <div className="flex min-h-0 flex-1 flex-col pt-3">
         <div className="flex items-center justify-between px-4 pb-1.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">Agents</span>
+            <span className="label-caps">Agents</span>
             <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
               {agents.length}
             </span>
@@ -451,7 +451,7 @@ export function SidebarContent({
                   className="size-6"
                   aria-label="Add agent"
                 >
-                  <Plus className="size-3.5" />
+                  <Plus />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Add agent</TooltipContent>
@@ -527,7 +527,7 @@ export function SidebarContent({
             className="h-8 flex-1 justify-start gap-2 px-2 text-sm text-muted-foreground hover:text-foreground"
             onClick={openSettings}
           >
-            <Settings2 className="size-3.5" /> Settings
+            <Settings2 /> Settings
           </Button>
           <ThemeToggle />
           {authEnabled ? <LockButton /> : null}

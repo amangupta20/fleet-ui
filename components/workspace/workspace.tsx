@@ -78,7 +78,7 @@ function EmptyFleet() {
           transcript, model pin, and idempotent runs.
         </p>
         <Button className="mt-6" onClick={() => setAddOpen(true)}>
-          <Plus className="size-4" /> Add your first agent
+          <Plus /> Add your first agent
         </Button>
         <p className="mt-4 font-mono text-sm text-muted-foreground">
           POST /agent/&lt;name&gt;/prompt → celld
@@ -157,7 +157,7 @@ export function Workspace() {
                       aria-label={item.label}
                       aria-pressed={layout === item.value}
                     >
-                      <Icon className="size-3.5" />
+                      <Icon />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>{item.label}</TooltipContent>

@@ -119,7 +119,7 @@ export function LabsPage() {
           </Button>
           <Button size="sm" asChild>
             <Link href="/">
-              <FlaskConical className="h-3.5 w-3.5" /> Workspace
+              <FlaskConical className="size-3.5" /> Workspace
             </Link>
           </Button>
         </div>
@@ -127,8 +127,8 @@ export function LabsPage() {
 
       <div className="mt-5 rounded border border-brand/15 bg-brand/[0.035] p-4">
         <div className="flex items-start gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-brand/20 bg-brand/10">
-            <FlaskConical className="h-4 w-4 text-brand" />
+          <span className="flex size-8 shrink-0 items-center justify-center rounded border border-brand/20 bg-brand/10">
+            <FlaskConical className="size-4 text-brand" />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-medium">Stubs, not fake features</p>
@@ -162,11 +162,11 @@ export function LabsPage() {
                   <div className="flex min-w-0 items-start gap-2.5">
                     <span
                       className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded border",
+                        "flex size-9 shrink-0 items-center justify-center rounded border",
                         enabled ? "border-brand/25 bg-brand/10 text-brand" : "bg-muted/40 text-muted-foreground",
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="size-4" />
                     </span>
                     <div className="min-w-0">
                       <CardTitle className="flex flex-wrap items-center gap-1.5 text-sm">
@@ -212,7 +212,7 @@ export function LabsPage() {
                   <>
                     <Preview featureKey={feature.key} />
                     <p className="mt-2 flex items-start gap-1.5 text-sm leading-relaxed text-muted-foreground">
-                      <Wand2 className="mt-0.5 h-3 w-3 shrink-0" />
+                      <Wand2 className="mt-0.5 size-3 shrink-0" />
                       {feature.hint}
                     </p>
                   </>
@@ -229,7 +229,7 @@ export function LabsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <SquareTerminal className="h-4 w-4 text-brand" /> Terminal & files flag behavior
+              <SquareTerminal className="size-4 text-brand" /> Terminal & files flag behavior
             </CardTitle>
             <CardDescription className="text-sm">
               Enabling terminal or files adds a tab inside each agent pane. Both are safe to leave on — they never
@@ -246,7 +246,7 @@ export function LabsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Wand2 className="h-4 w-4 text-brand" /> Delivery roadmap
+              <Wand2 className="size-4 text-brand" /> Delivery roadmap
             </CardTitle>
             <CardDescription className="text-sm">What must exist before these stubs become features.</CardDescription>
           </CardHeader>

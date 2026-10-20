@@ -28,7 +28,7 @@ export default async function UnlockPage({
       />
       <div className="relative z-10 w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <Logo className="mb-4 h-12 w-12 rounded" />
+          <Logo className="mb-4 size-12 rounded" />
           <h1 className="text-base font-bold leading-[1.5]">Fleet UI is locked</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Enter the shared console password to reach your agents.
@@ -37,14 +37,14 @@ export default async function UnlockPage({
 
         <div className="rounded border bg-card/90 p-6 backdrop-blur">
           <div className="mb-5 flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-brand" />
+            <ShieldCheck className="size-3.5 text-brand" />
             Password gate · HttpOnly session
           </div>
           <UnlockForm next={next} />
         </div>
 
         <div className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
-          <LockKeyhole className="h-3 w-3" />
+          <LockKeyhole className="size-3" />
           The Worker is never exposed to this browser directly.
         </div>
       </div>

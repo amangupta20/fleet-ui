@@ -33,7 +33,7 @@ export function LifecycleChip({
   return (
     <Badge
       variant={CHIP[lifecycle].variant}
-      className={cn("gap-1.5 uppercase tracking-[0.08em]", className)}
+      className={cn("gap-1.5", className)}
       title={`lifecycle: ${lifecycle}`}
     >
       <span

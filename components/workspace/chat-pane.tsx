@@ -488,7 +488,7 @@ export function ChatPane({ agent }: { agent: string }) {
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="cursor-default">
-                <Info className="size-3.5" />
+                <Info />
               </span>
             </TooltipTrigger>
             <TooltipContent>
@@ -673,7 +673,7 @@ export function ChatPane({ agent }: { agent: string }) {
           {requestControlsOpen ? (
             <div className="rounded-lg border bg-muted/20 p-2.5">
               <div className="flex items-center gap-2">
-                <Label htmlFor={`request-id-${agent}`} className="shrink-0 font-mono text-sm uppercase tracking-[0.08em] text-muted-foreground">
+                <Label htmlFor={`request-id-${agent}`} className="label-caps shrink-0">
                   Request ID
                 </Label>
                 <Input
