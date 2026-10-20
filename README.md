@@ -55,7 +55,7 @@ Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ─�
 | **Agent rail** | Server `GET /agents` + optional Paperclip directory + local recents, grouped **Fleet / Paperclip / Local** with origin badges; activity + prompt counts, search, add/rename/star/remove local shortcuts, reachability dots |
 | **Chat** | Prompt composer, browser session log, markdown answers, copy/export, retry, model override, live latency, `status` / `reason`, `requestId` + `submissionId` / `operationId` |
 | **Idempotency** | Auto-generated request IDs per send, manual IDs, reuse-last, same-ID retry; copy every ID |
-| **Durable transcript** | Tail `GET /agent/:name/messages` with limit selector (10–100), kind/id/preview rendering, refresh, JSON/text export |
+| **Durable transcript** | Tail `GET /agent/:name/messages` with limit selector (server clamps to 1–100, default 20 when omitted), kind/id/preview rendering, refresh, JSON/text export |
 | **Reset** | Confirmed `POST /agent/:name/reset`; clears server context and the browser run log for that agent |
 | **Providers** | `/models` default, configured flags, catalog search/filter, context + output limits, router base URL and live ids, unpinned-id warning |
 | **Workspace** | 1–4 pane layouts, persisted pane assignments, independent composers, mobile pane switcher |
@@ -250,7 +250,8 @@ The rail is a **merge selector**, not a browser-owned list:
 - Clicking any row uses the existing chat flow: `GET /agent/:name/messages` + `POST /agent/:name/prompt`, with `encodeURIComponent` applied to the name on every request. Displayed names are decoded.
 - Adding an agent creates a local shortcut, not a server record. **Rename** changes only the rail label and **star** is browser-local; neither changes the Durable Object name.
 - A Durable Object is created/activated lazily on the first `prompt` (or first `/messages` read).
-- Any `:name` works. Names are trimmed, limited to 64 characters, and cannot contain `/ \ ? #` or control characters. Spaces and unicode are encoded safely.
+- Any valid `:name` works. Names are trimmed, capped at 64 characters, and cannot contain `/ \ ? #` or control characters. Spaces and unicode are encoded safely.
+- The **64-character cap is an intentional UI rule**, not a backend contract. Fleet-base allows names up to 128 characters, so names 65–128 characters long can be created with `curl` and will appear in the fleet directory, but the UI will not create them (the add-agent form rejects them). The lower limit keeps rail and header layouts readable.
 - The green dot comes from `GET /agent/:name/state`. That endpoint is deliberately coarse: reachable means the binding is addressable, not a true residency probe.
 - Removing a shortcut does not delete the Durable Object, transcript, or model pin. Fleet/Paperclip rows reappear from their server list; local-only rows disappear.
 

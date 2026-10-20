@@ -83,5 +83,5 @@ export async function HEAD(request: Request, context: { params: Promise<{ path: 
 }
 
 export async function OPTIONS() {
-  return new Response(null, { status: 204, headers: { allow: "GET, POST, OPTIONS" } });
+  return new Response(null, { status: 204, headers: { allow: "GET, POST, HEAD, OPTIONS" } });
 }
