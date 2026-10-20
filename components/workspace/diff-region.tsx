@@ -22,7 +22,7 @@ export function DiffRegion({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded border border-dashed border-border bg-muted/20 p-2", className)}>
+    <div className={cn("rounded-lg border border-dashed border-border bg-muted/20 p-2", className)}>
       <div className="flex items-center gap-1.5">
         <FileDiff className="size-3.5 text-muted-foreground" />
         <span className="font-mono text-sm text-foreground">
@@ -36,7 +36,7 @@ export function DiffRegion({
       </div>
 
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
-        <div className="rounded border bg-background/40 p-2">
+        <div className="rounded-lg border bg-background/40 p-2">
           <div className="font-mono text-sm uppercase tracking-[0.1em] text-muted-foreground">
             before
           </div>
@@ -44,7 +44,7 @@ export function DiffRegion({
             {diff ? diff.before : "—"}
           </pre>
         </div>
-        <div className="rounded border bg-background/40 p-2">
+        <div className="rounded-lg border bg-background/40 p-2">
           <div className="font-mono text-sm uppercase tracking-[0.1em] text-muted-foreground">
             after
           </div>

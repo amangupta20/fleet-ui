@@ -4,59 +4,30 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-34d399.svg)](LICENSE)
 [![Node.js 22.19+](https://img.shields.io/badge/node-%E2%89%A522.19-339933.svg)](.nvmrc)
 
-A feature-rich, self-hosted web console for **[fleet-base](https://github.com/amangupta20/fleet-base)** — a `celld` + [Pi Durable](https://github.com/badlogic/pi-mono) agent fleet.
+A self-hosted web console for **[fleet-base](https://github.com/amangupta20/fleet-base)** — a `celld` + [Pi Durable](https://github.com/badlogic/pi-mono) agent fleet. One tab: the agent rail, an epoch-grouped chat timeline, the durable transcript, and the provider dashboard.
 
-> **Scope:** this repository is the **console only**. It does not vendor fleet-base, celld, Worker routes, or Durable Object code. Run the Worker separately and point `FLEET_URL` at it.
+![Fleet UI — agent timeline](docs/screens/after-chat.png)
 
-**Docs:** [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
+## Quickstart
 
-Fleet UI talks to the Worker API through a same-origin proxy, so the fleet never needs CORS headers and `FLEET_URL` never reaches the browser. It ships a production build, Docker image, PWA shell, optional password gate, provider dashboard, durable-transcript viewer, and 1–4 pane workspace.
-
-```text
-Browser ── /api/* ──▶ Next.js rewrite ──▶ Node proxy route ──▶ FLEET_URL (celld / fleet node)
-                          same origin              runtime env          Worker API
+```sh
+git clone https://github.com/amangupta20/fleet-ui.git && cd fleet-ui
+npm install
+cp .env.example .env.local      # FLEET_URL=http://127.0.0.1:9876
+npm run dev                     # http://localhost:3000
 ```
 
-> **Status:** v0.1.0, verified against `celld dev` 0.6.2 and fleet-base at port `9876`. Pinned backend: [`7eb7e7b`](https://github.com/amangupta20/fleet-base/commit/7eb7e7bd46b1dc5ddf8049d447103d8bdfa01d0a) — `Registry` DO + `GET /agents`. Future capabilities are deliberately inert Labs stubs — no fake backend calls.
+Point `FLEET_URL` at a running `celld dev` (fleet-base). The browser only
+calls same-origin `/api/*`, which a Node proxy forwards to the Worker at
+request time — the Worker URL never reaches the client and the fleet needs no
+CORS headers.
 
-![Fleet UI workspace — dark theme, durable chat, run metadata](docs/workspace.png)
+**Docs:** [Design system](docs/design-system.md) · [Verification log](docs/verification.md) · [Screenshots](docs/screens/) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
 
-### Verification
-
-Every live claim in this README is checked with a `curl` against a running
-`celld dev` — the commands and their output are recorded in
-**[docs/verification.md](docs/verification.md)** (Allow header, message-limit
-clamp and default, rail source, `submissionId`, live smoke run).
-
-### Screenshots
-
-Before (v0.1 chat bubbles) and after (OpenCode agent timeline) — the same
-backend, the same agent (`ui-smoke-tool`) and the same real `submissionId`
-(`smoke_1792500534983_5cq3nq`), captured with the same seeded browser state:
-
-| Before | After |
-|---|---|
-| ![Before — chat bubbles](docs/screens/before-chat.png) | ![After — epoch timeline](docs/screens/after-chat.png) |
-
-The agent rail before and after (reachability dot → lifecycle chip, sans → mono,
-pill radii → 4px):
-
-| Before — rail | After — rail |
-|---|---|
-| ![Before — rail](docs/screens/before-rail.png) | ![After — rail](docs/screens/after-rail.png) |
-
-| After — epoch timeline with tool rows | After — disabled revert, labelled stub |
-|---|---|
-| ![After — tool rows](docs/screens/after-tool-rows.png) | ![After — revert tooltip](docs/screens/after-revert-tooltip.png) |
-
-| After — lifecycle chip `running` | After — terminal stub, diff placeholder |
-|---|---|
-| ![After — running lifecycle](docs/screens/after-running-lifecycle.png) | ![After — terminal](docs/screens/after-terminal.png) |
-
-The diff region ships wired but empty — it renders real before/after content
-as soon as the backend provides a patch, and says so until then:
-
-![After — diff placeholder](docs/screens/after-diff-placeholder.png)
+> **Scope:** the **console only**. It does not vendor fleet-base, celld, Worker
+> routes or Durable Object code — run the Worker separately.
+>
+> **Pinned backend:** fleet-base [`b6e898e`](https://github.com/amangupta20/fleet-base/commit/b6e898e) — `Registry` DO + `GET /agents`. Future capabilities are deliberately inert Labs stubs: no fake backend calls.
 
 ---
 
@@ -447,6 +418,14 @@ npm run check
 ```
 
 Covers agent-name validation/encoding/decoding, the three-source merge selector (duplicate names, precedence, ordering), `GET /agents` normalization plus 502/offline fallback, Paperclip URL/normalization, request IDs, formatting, transcript export, auth token signing/expiry/sanitization, and login throttling. Tests do not require a backend.
+
+### Live verification
+
+Every live claim in this README is checked with a `curl` against a running
+`celld dev` — the commands and their output are recorded in
+**[docs/verification.md](docs/verification.md)** (Allow header, message-limit
+clamp and default, rail source, `submissionId`, live smoke run). Screenshots
+live in **[docs/screens/](docs/screens/)**.
 
 ### Live smoke test
 

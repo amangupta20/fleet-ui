@@ -87,9 +87,12 @@ const config: Config = {
         warning: "hsl(var(--warning))",
       },
       borderRadius: {
+        // Cards and panels follow --radius; controls and badges follow their
+        // own tokens so a theme can vary them independently.
         lg: "var(--radius)",
-        md: "var(--radius)",
-        sm: "var(--radius)",
+        md: "var(--radius-control)",
+        sm: "var(--radius-control)",
+        badge: "var(--radius-badge)",
       },
       fontFamily: {
         sans: OPENCODE_MONO,

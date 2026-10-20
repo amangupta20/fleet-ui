@@ -1,0 +1,70 @@
+/*
+ * Theme demos.
+ *
+ * Three candidate skins for the agent surface, rendered side by side at
+ * /demo/a, /demo/b and /demo/c. They differ only in:
+ *
+ *   a — pure black canvas, one accent (emerald), 12px cards, 10px controls,
+ *       pill badges
+ *   b — pure black canvas, two accents (emerald = fleet / success / selected,
+ *       cyan = interactive / links / user rows), 12px cards
+ *   c — pure black canvas, same two accents, 16px cards (the softest)
+ *
+ * Everything else stays on the OpenCode tokens: the same surfaces, the same
+ * flat zero-shadow depth model, the same timeline rows, epoch grouping,
+ * lifecycle chip, disabled revert stub, terminal stub and empty diff region.
+ *
+ * The demo is a skin pass: no behaviour changes, no new dependency.
+ *
+ * Tokens are written as HSL channel triples (the same notation as
+ * app/globals.css) because the Tailwind colours wrap them in `hsl()` and the
+ * opacity modifiers need channels.
+ */
+
+[data-theme="a"],
+[data-theme="b"],
+[data-theme="c"] {
+  /* Pure black canvas with a lifted surface, the way a terminal-first console
+     reads on an OLED panel. */
+  --background: 0 0% 0%;
+  --card: 0 0% 4.706%;
+  --popover: 0 0% 4.706%;
+  --secondary: 0 0% 7.843%;
+  --muted: 0 0% 7.843%;
+  --accent: 0 0% 7.843%;
+  --input: 0 0% 14.902%;
+  --border: 0 0% 14.902%;
+  --border-alpha: 1;
+  --muted-foreground: 0 0% 54.118%;
+
+  --sidebar: 0 0% 0%;
+  --sidebar-border: 0 0% 14.902%;
+  /* Selection reads emerald: it is a fleet state, not an interaction. */
+  --sidebar-accent: 143.077 33.333% 7.647%;
+  --sidebar-accent-alpha: 1;
+  --sidebar-accent-hover: 141.176 29.825% 11.176%;
+  --sidebar-accent-hover-alpha: 1;
+
+  /* Success Green #30d158 — fleet, success, selected. */
+  --success: 134.907 63.636% 50.392%;
+
+  --radius: 12px;
+  --radius-control: 10px;
+  --radius-badge: 9999px;
+}
+
+/* a: one accent only — emerald carries interactive elements as well. */
+[data-theme="a"] {
+  --accent-brand: 134.907 63.636% 50.392%;
+}
+
+/* b and c: emerald for fleet state, cyan for anything interactive. */
+[data-theme="b"],
+[data-theme="c"] {
+  --accent-brand: 187.941 85.714% 53.333%;
+}
+
+/* c: the softest cards. */
+[data-theme="c"] {
+  --radius: 16px;
+}

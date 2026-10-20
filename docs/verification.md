@@ -101,7 +101,25 @@ Fleet UI smoke → http://127.0.0.1:3000
 All smoke checks passed.
 ```
 
-## 6. Static checks
+## 6. The theme demos show the same agent and the same submissionId
+
+`/demo/a`, `/demo/b` and `/demo/c` are the same console with a different
+skin. A headless pass loads each route with the same seeded browser state and
+asserts the agent, the epoch key, the disabled revert control, the timeline
+rows and the lifecycle chip:
+
+```
+demo/a: ok {"agent":true,"submissionId":true,"revertDisabled":true,"timelineRows":true,"lifecycleChip":true} rows=63
+demo/b: ok {"agent":true,"submissionId":true,"revertDisabled":true,"timelineRows":true,"lifecycleChip":true} rows=63
+demo/c: ok {"agent":true,"submissionId":true,"revertDisabled":true,"timelineRows":true,"lifecycleChip":true} rows=63
+
+All demos render the same agent + submissionId.
+```
+
+`submissionId` is `smoke_1792500534983_5cq3nq` in all three — the same real
+id the epoch header renders in the screenshots.
+
+## 7. Static checks
 
 ```sh
 $ npm run check     # tsc --noEmit + eslint + vitest
@@ -112,7 +130,7 @@ $ npm run build     # production/standalone build
 - `npm run build` → succeeds; routes unchanged except the new timeline
   components.
 
-## 7. What is deliberately *not* proven by a curl
+## 8. What is deliberately *not* proven by a curl
 
 - The **revert control** is disabled on purpose: the Worker has no checkpoint
   endpoint, so there is nothing to call.

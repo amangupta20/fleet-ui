@@ -50,8 +50,10 @@
     --success: 134.907 63.636% 50.392%;
     /* Warning Orange #ff9f0a */
     --warning: 36.49 100% 51.961%;
-    /* Radius: 4px micro */
+    /* Radius: 4px micro (cards), 4px controls, 4px badges */
     --radius: 4px;
+    --radius-control: 4px;
+    --radius-badge: 4px;
   }
 
   .dark {
@@ -139,6 +141,11 @@
 
   .meta-label {
     @apply text-sm font-medium leading-[1.4] text-muted-foreground;
+  }
+
+  /* Helper rows: the small muted notes under a row or an epoch. */
+  .helper-text {
+    @apply text-xs leading-[1.4] text-muted-foreground;
   }
 
   .hairline {

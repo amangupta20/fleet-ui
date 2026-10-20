@@ -125,7 +125,7 @@ export function TerminalStub({ agent }: { agent: string }) {
         </span>
       </div>
       <div className="min-h-0 flex-1 p-2">
-        <div ref={containerRef} className="h-full w-full overflow-hidden rounded border" />
+        <div ref={containerRef} className="h-full w-full overflow-hidden rounded-lg border" />
       </div>
       <div className="shrink-0 border-t px-3 py-1.5 font-mono text-sm text-muted-foreground">
         transport: disabled · xterm.js {`v6`} installed · no Worker calls

@@ -763,7 +763,7 @@ export function ChatPane({ agent }: { agent: string }) {
 
           <div
             className={cn(
-              "rounded border bg-background transition-colors focus-within:border-brand/50",
+              "rounded-lg border bg-background transition-colors focus-within:border-brand/50",
               inputError && "border-destructive/40",
             )}
           >

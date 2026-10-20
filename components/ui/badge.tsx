@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * Colours come from the design-system tokens only.
  */
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-sm leading-[1.4] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
+  "inline-flex items-center gap-1 rounded-badge border px-2 py-0.5 font-mono text-sm leading-[1.4] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
   {
     variants: {
       variant: {

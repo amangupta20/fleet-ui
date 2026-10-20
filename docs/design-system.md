@@ -150,6 +150,39 @@ reading the CSS variables — xterm cannot parse an HSL channel triple. They
 are the same colours as `--background`, `--foreground`, `--success` and
 `--ring`.
 
+## Theme demos (skin pass)
+
+Three candidate skins for the agent surface, live at `/demo/a`, `/demo/b` and
+`/demo/c` in this build (`app/demo/demo-theme.css`). Same console, same agent,
+same `submissionId`; only the skin differs.
+
+| Demo | Canvas | Accent | Cards | Controls | Badges |
+|---|---|---|---|---|---|
+| **a** | `#000000` | emerald only | 12px | 10px | pill |
+| **b** | `#000000` | emerald (fleet / success / selected) + cyan (interactive / links / user rows) | 12px | 10px | pill |
+| **c** | `#000000` | emerald + cyan | 16px | 10px | pill |
+
+Shots: [`docs/screens/`](screens/README.md).
+
+### Pick
+
+**Pending — Awaiting Aman.** The winner becomes the real theme in
+`app/globals.css`; the two losing demo routes are deleted and the demo CSS
+goes with them.
+
+### Deviations these skins carry from the OpenCode template
+
+- Canvas `#000000` instead of OpenCode Dark `#201d1d`.
+- Accents: Success Green `#30d158` (emerald) and `#22d3ee` (cyan) instead of
+  Accent Blue `#007aff`.
+- Radius: 12px / 16px cards, 10px controls, pill badges instead of the 4px
+  micro radius.
+- Helper rows at 12px gray; the console ramp itself stays 14px / 16px.
+
+Behaviour is untouched by the skin: timeline rows, epoch grouping, the
+lifecycle chip, the disabled revert stub, the terminal stub and the empty diff
+region are the same in all three.
+
 ## Rules
 
 - No colour outside this document. If a surface needs a new colour, it gets a

@@ -67,7 +67,7 @@ function UserRow({ row }: { row: TimelineRow }) {
       <p className="whitespace-pre-wrap break-words text-base leading-[1.5] text-foreground">
         {row.text || <span className="text-muted-foreground">(empty prompt)</span>}
       </p>
-      {row.detail ? <p className="mt-1 font-mono text-sm text-muted-foreground">{row.detail}</p> : null}
+      {row.detail ? <p className="helper-text mt-1">{row.detail}</p> : null}
     </RowFrame>
   );
 }
@@ -77,7 +77,7 @@ function ModelRow({ row }: { row: TimelineRow }) {
   return (
     <RowFrame row={row} glyph={<CircleDot className="size-3.5" />}>
       {failed ? (
-        <div className="rounded border border-destructive/30 bg-destructive/5 p-2">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-2">
           <div className="flex items-center gap-1.5 text-sm font-medium text-destructive">
             <AlertTriangle className="size-3.5" /> {row.detail ?? "request failed"}
           </div>
@@ -86,7 +86,7 @@ function ModelRow({ row }: { row: TimelineRow }) {
           </pre>
         </div>
       ) : row.text ? (
-        <div className="rounded border bg-card/60 p-2.5">
+        <div className="rounded-lg border bg-card/60 p-2.5">
           <Markdown content={row.text} />
         </div>
       ) : (
@@ -94,9 +94,7 @@ function ModelRow({ row }: { row: TimelineRow }) {
           {row.detail ?? "The agent returned no text."}
         </p>
       )}
-      {row.detail && !failed ? (
-        <p className="mt-1 font-mono text-sm text-muted-foreground">{row.detail}</p>
-      ) : null}
+      {row.detail && !failed ? <p className="helper-text mt-1">{row.detail}</p> : null}
     </RowFrame>
   );
 }
@@ -105,21 +103,17 @@ function ToolCallRow({ row }: { row: TimelineRow }) {
   const showsDiff = touchesFiles(row.category ?? "other");
   return (
     <RowFrame row={row} glyph={<Wrench className="size-3.5" />}>
-      <div className="rounded border bg-muted/30 px-2 py-1.5">
+      <div className="rounded-lg border bg-muted/30 px-2 py-1.5">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-mono text-sm text-foreground">{row.title}</span>
           <Badge variant="warning">tool call</Badge>
         </div>
-        {row.detail ? (
-          <p className="mt-1 font-mono text-sm text-muted-foreground">{row.detail}</p>
-        ) : null}
+        {row.detail ? <p className="helper-text mt-1">{row.detail}</p> : null}
       </div>
       {showsDiff ? (
         <DiffRegion path={row.filePath ?? null} diff={row.diff ?? null} className="mt-2" />
       ) : (
-        <p className="mt-1 font-mono text-sm text-muted-foreground">
-          no file region · this tool does not change files
-        </p>
+        <p className="helper-text mt-1">no file region · this tool does not change files</p>
       )}
     </RowFrame>
   );
@@ -128,7 +122,7 @@ function ToolCallRow({ row }: { row: TimelineRow }) {
 function ToolResultRow({ row }: { row: TimelineRow }) {
   return (
     <RowFrame row={row} glyph={<Terminal className="size-3.5" />}>
-      <div className="rounded border bg-muted/30 p-2">
+      <div className="rounded-lg border bg-muted/30 p-2">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-sm text-foreground">{row.title}</span>
           <Badge variant="muted">result</Badge>
@@ -141,9 +135,7 @@ function ToolResultRow({ row }: { row: TimelineRow }) {
       {row.filePath || row.diff ? (
         <DiffRegion path={row.filePath ?? null} diff={row.diff ?? null} className="mt-2" />
       ) : null}
-      {row.detail ? (
-        <p className="mt-1 font-mono text-sm text-muted-foreground">{row.detail}</p>
-      ) : null}
+      {row.detail ? <p className="helper-text mt-1">{row.detail}</p> : null}
     </RowFrame>
   );
 }
@@ -151,7 +143,7 @@ function ToolResultRow({ row }: { row: TimelineRow }) {
 function PermissionRow({ row }: { row: TimelineRow }) {
   return (
     <RowFrame row={row} glyph={<ShieldQuestion className="size-3.5" />}>
-      <div className="rounded border border-warning/40 bg-warning/5 p-2.5">
+      <div className="rounded-lg border border-warning/40 bg-warning/5 p-2.5">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-sm font-medium text-warning">permission request</span>
           <Badge variant="warning">needs a decision</Badge>
@@ -168,9 +160,7 @@ function PermissionRow({ row }: { row: TimelineRow }) {
           <Button size="xs" variant="outline" disabled>
             Deny
           </Button>
-          <span className="font-mono text-sm text-muted-foreground">
-            decisions need a backend endpoint
-          </span>
+          <span className="helper-text">decisions need a backend endpoint</span>
         </div>
       </div>
     </RowFrame>

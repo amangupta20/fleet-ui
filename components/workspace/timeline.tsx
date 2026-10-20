@@ -1,6 +1,17 @@
 "use client";
 
-import { Copy, Ellipsis, FileDown, FileJson, RefreshCcw, RotateCcw, Trash2 } from "lucide-react";
+import { useState } from "react";
+import {
+  ChevronDown,
+  Copy,
+  Ellipsis,
+  FileDown,
+  FileJson,
+  Info,
+  RefreshCcw,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { RevertStub, TimelineRowView } from "@/components/workspace/timeline-row";
@@ -17,7 +28,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ChatRun } from "@/lib/chat-types";
 import { epochKey, type Timeline, type TimelineEpoch } from "@/lib/timeline";
-import { copyText, formatDateTime, formatDuration, formatRelativeTime } from "@/lib/utils";
+import { cn, copyText, formatDateTime, formatDuration, formatRelativeTime } from "@/lib/utils";
 
 /**
  * Epoch timeline.
@@ -42,6 +53,22 @@ function statusBadge(epoch: TimelineEpoch): React.ReactNode {
   if (epoch.status === "unanswered") return <Badge variant="warning">unanswered</Badge>;
   if (epoch.status === "error") return <Badge variant="destructive">error</Badge>;
   return <Badge variant="muted">{epoch.status}</Badge>;
+}
+
+/** One value in the expanded run details. */
+function DetailValue({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="min-w-0">
+      <div className="helper-text uppercase tracking-[0.1em]">{label}</div>
+      <div className="mt-0.5 flex items-center gap-1">
+        <span className="truncate font-mono text-sm text-foreground/85" title={value}>
+          {value}
+        </span>
+        <CopyId label={label} value={value} />
+      </div>
+    </div>
+  );
 }
 
 /** An identifier with a copy button. */
@@ -159,10 +186,11 @@ function EpochHeader({
   defaultModel: string | null;
   actions: EpochActions;
 }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const submissionLabel = epoch.submissionId ?? (epoch.status === "running" ? "pending submissionId" : "not epoch-linked");
 
   return (
-    <header className="rounded border bg-muted/25 px-2.5 py-2">
+    <header className="rounded-lg border bg-muted/25 px-2.5 py-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-sm uppercase tracking-[0.12em] text-muted-foreground">
           epoch
@@ -181,28 +209,45 @@ function EpochHeader({
         {epoch.prompt || "(no prompt text)"}
       </p>
 
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-muted-foreground">
-        <span>model {epoch.model ?? defaultModel ?? "fleet default"}</span>
+      <div className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="truncate">model {epoch.model ?? defaultModel ?? "fleet default"}</span>
         <span aria-hidden>·</span>
-        <span>
-          {epoch.createdAt ? formatDateTime(epoch.createdAt) : "timestamp not returned"}
-          {epoch.createdAt ? ` · ${formatRelativeTime(epoch.createdAt)}` : ""}
+        <span className="shrink-0">
+          {epoch.createdAt ? formatRelativeTime(epoch.createdAt) : "timestamp not returned"}
         </span>
         {run ? (
           <>
             <span aria-hidden>·</span>
-            <span>{formatDuration(run.latencyMs)} round-trip</span>
+            <span className="shrink-0">{formatDuration(run.latencyMs)} round-trip</span>
           </>
         ) : null}
-        {run?.requestId ? (
-          <>
-            <span aria-hidden>·</span>
-            <span className="flex items-center gap-1">
-              request <CopyId label="request ID" value={run.requestId} />
-            </span>
-          </>
-        ) : null}
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((open) => !open)}
+          className="ml-auto inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          aria-expanded={detailsOpen}
+        >
+          Run details
+          <ChevronDown className={cn("size-3.5 transition-transform", detailsOpen && "rotate-180")} />
+        </button>
       </div>
+
+      {detailsOpen ? (
+        <div className="mt-2 grid gap-2 border-t border-border/70 pt-2 sm:grid-cols-2">
+          <DetailValue label="Request ID" value={run?.requestId ?? null} />
+          <DetailValue label="Submission ID" value={epoch.submissionId} />
+          {run?.operationId && run.operationId !== epoch.submissionId ? (
+            <DetailValue label="Operation ID" value={run.operationId} />
+          ) : null}
+          <DetailValue label="Model" value={epoch.model ?? defaultModel ?? "fleet default"} />
+          <DetailValue
+            label="Created"
+            value={epoch.createdAt ? formatDateTime(epoch.createdAt) : "timestamp not returned"}
+          />
+          <DetailValue label="Latency" value={formatDuration(run?.latencyMs ?? null)} />
+          {run?.httpStatus ? <DetailValue label="HTTP status" value={String(run.httpStatus)} /> : null}
+        </div>
+      ) : null}
     </header>
   );
 }
@@ -236,10 +281,19 @@ export function AgentTimeline({
             ))}
             {epoch.durableRows.length > 0 ? (
               <>
-                <p className="font-mono text-sm text-muted-foreground">
-                  durable rows for this turn — linked by the message-id watermark, because the
-                  Worker sends no submissionId per message
-                </p>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex size-4 items-center justify-center text-muted-foreground">
+                      <Info className="size-3.5" />
+                      <span className="sr-only">How the durable rows below are linked</span>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    Durable rows for this turn, linked by the message-id watermark: the Worker sends
+                    no submissionId per message, so the browser reads the transcript before the
+                    prompt and links the turn that starts above that watermark.
+                  </TooltipContent>
+                </Tooltip>
                 {epoch.durableRows.map((row) => (
                   <TimelineRowView key={`${epoch.id}-${row.id}`} row={row} />
                 ))}
@@ -251,17 +305,15 @@ export function AgentTimeline({
 
       {timeline.durableEpochs.length > 0 ? (
         <section aria-label="Durable activity">
-          <div className="rounded border border-dashed bg-muted/15 px-2.5 py-2">
+          <div className="rounded-lg border border-dashed bg-muted/15 px-2.5 py-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-sm uppercase tracking-[0.12em] text-muted-foreground">
                 durable activity
               </span>
               <Badge variant="muted">worker transcript</Badge>
-              <span className="font-mono text-sm text-muted-foreground">
-                800ch previews · not epoch-linked
-              </span>
+              <span className="helper-text">800ch previews · not epoch-linked</span>
             </div>
-            <p className="mt-1 text-sm leading-[1.5] text-muted-foreground">
+            <p className="helper-text mt-1">
               These turns predate every prompt this browser sent, or the Worker never returned a
               submissionId for them, so the console will not attach them to an epoch.
             </p>
