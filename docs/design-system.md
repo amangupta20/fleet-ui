@@ -9,8 +9,10 @@ timeline, transcript, providers, labs).
 `shadcn` skill: existing `components/ui` primitives only, semantic tokens only,
 no custom markup where a primitive exists.
 
-No second palette is mixed in. Every colour, radius, font and spacing value in
-the console comes from the OpenCode template.
+One palette, one system: the light theme is the OpenCode template's, and the
+dark theme is the console skin picked from the three theme demos (see *Picked
+theme*). Every colour in the console comes from one of those two lists below —
+nothing is mixed in from anywhere else.
 
 ## Why OpenCode
 
@@ -131,15 +133,16 @@ renders an elevation shadow.
 
 | Surface | Recipe |
 |---|---|
-| Timeline row — user turn | accent-blue left rail, `you` label in mono caps, prompt text in the body font |
-| Timeline row — model turn | success-green left rail, `Fleet` label, markdown body in a bordered card, status badge (shown when the turn is not `done`) |
+| Timeline row — user turn | cyan left rail (the interactive accent), `you` label in mono caps, prompt text in the body font |
+| Timeline row — model turn | emerald left rail (fleet state), `Fleet` label, markdown body in a bordered card, status badge (shown when the turn is not `done`) |
 | Timeline row — tool call | warning-orange left rail, mono tool name, `shell` / `read` / `edit` / `write` / `search` category tag, `tool call` badge |
 | Timeline row — tool result | muted left rail, mono preview in a bordered block, `800ch max` marker |
 | Timeline row — permission request | warning-orange bordered panel, `Approve` / `Deny` rendered **disabled** with the reason label |
-| Lifecycle chip | 4px radius, 1px border, mono label, badge variant per state (`muted` / `outline` / `brand` / `destructive`) |
-| Epoch header | `epoch` label, `submissionId` in the accent colour, status badge, prompt text at `16px/700`, mono meta row (model · timestamp · latency · request id) |
+| Helper row | 12px muted gray (`.helper-text`) — the small notes under a row or an epoch |
+| Lifecycle chip | pill badge, 1px border, mono label, badge variant per state (`muted` / `outline` / `brand` / `destructive`) |
+| Epoch header | `epoch` label, `submissionId` in the accent colour with a copy button, status badge, prompt text at `16px/700`, one meta line (model · when · latency) and an expandable **Run details** block (ids, timestamps, HTTP status) |
 | Disabled revert control | `variant="outline"`, `disabled`, tooltip `needs backend checkpoint` |
-| Diff region | dashed 4px-radius region, `before` / `after` columns, empty-state text until the backend ships file data |
+| Diff region | dashed 16px-radius region, `before` / `after` columns, empty-state text until the backend ships file data |
 | Terminal stub | xterm canvas with `disableStdin`, header label `terminal — needs containers, not yet` |
 
 ## Deviations on record
@@ -161,11 +164,11 @@ renders an elevation shadow.
 
 ## Literals
 
-The xterm canvas in the terminal stub needs literal colours, so it repeats the
-OpenCode values (`#201d1d`, `#fdfcfc`, `#30d158`, `#007aff`) instead of
-reading the CSS variables — xterm cannot parse an HSL channel triple. They
-are the same colours as `--background`, `--foreground`, `--success` and
-`--ring`.
+The xterm canvas in the terminal stub needs literal colours, so it repeats
+the theme values instead of reading the CSS variables — xterm cannot parse an
+HSL channel triple. The dark canvas repeats the picked skin (`#000000`,
+`#fdfcfc`, `#30d158`, `rgba(34, 211, 238, 0.25)`), the light canvas the
+OpenCode light palette (`#fdfcfc`, `#201d1d`, `#007aff`).
 
 ## Picked theme
 

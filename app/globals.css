@@ -14,7 +14,7 @@
    * need channel triples to work.
    */
   :root {
-    /* OpenCode Light #fdfcfc · OpenCode Dark #201d1d */
+    /* OpenCode Light #fdfcfc */
     --background: 0 20% 99.02%;
     --foreground: 0 4.918% 11.961%;
     /* Input Light #f8f7f7 */
@@ -46,6 +46,7 @@
     --sidebar-accent: 0 6.667% 97.059%;
     --sidebar-accent-alpha: 1;
     --sidebar-accent-hover: 0 9.677% 93.922%;
+    --sidebar-accent-hover-alpha: 1;
     --sidebar-border: 0 0% 5.882%;
     /* Semantic accents */
     --accent-brand: 211.294 100% 50%;

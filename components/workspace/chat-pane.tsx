@@ -225,9 +225,10 @@ export function ChatPane({ agent }: { agent: string }) {
   const [prompt, setPrompt] = useState("");
   const [requestId, setRequestId] = useState(() => generateRequestId());
   const [showRequestPanel, setShowRequestPanel] = useState(false);
-  // The prompt in flight lives in the store, so the rail can show the same
-  // `running` lifecycle the timeline shows.
+  // The prompt in flight lives in the store, so the rail, the pane header and
+  // the timeline all read the same state.
   const inflight = useChatStore((state) => state.inflightByAgent[agent] ?? null);
+  const pending = inflight !== null;
   const [inputError, setInputError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -240,7 +241,6 @@ export function ChatPane({ agent }: { agent: string }) {
   // Manual mode keeps the compact footer indicator; opening the full panel is
   // explicit so 3–4 pane layouts keep maximum room for conversation.
   const requestControlsOpen = showRequestPanel;
-  const pending = mutation.isPending;
 
   const resizeTextarea = useCallback(() => {
     const element = textareaRef.current;
@@ -508,7 +508,7 @@ export function ChatPane({ agent }: { agent: string }) {
                 disabled={runs.length === 0}
                 aria-label="Copy transcript"
               >
-                <Copy className="size-3" />
+                <Copy />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Copy transcript</TooltipContent>
@@ -522,17 +522,17 @@ export function ChatPane({ agent }: { agent: string }) {
                 disabled={runs.length === 0}
                 aria-label="Export or clear transcript"
               >
-                <Download className="size-3" />
+                <Download />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel>Session log</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => exportTranscript("md")}>
-                <FileDown className="size-3.5" /> Export Markdown
+                <FileDown /> Export Markdown
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportTranscript("json")}>
-                <FileJson className="size-3.5" /> Export JSON
+                <FileJson /> Export JSON
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialog>
@@ -541,7 +541,7 @@ export function ChatPane({ agent }: { agent: string }) {
                     className="text-destructive focus:text-destructive"
                     onSelect={(event) => event.preventDefault()}
                   >
-                    <Eraser className="size-3.5" /> Clear browser log
+                    <Eraser /> Clear browser log
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -698,7 +698,7 @@ export function ChatPane({ agent }: { agent: string }) {
                       onClick={() => setRequestId(generateRequestId())}
                       aria-label="Generate a new request ID"
                     >
-                      <Wand2 className="size-3.5" />
+                      <Wand2 />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Generate new ID</TooltipContent>
@@ -717,7 +717,7 @@ export function ChatPane({ agent }: { agent: string }) {
                       }}
                       aria-label="Copy request ID"
                     >
-                      <Copy className="size-3.5" />
+                      <Copy />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Copy ID</TooltipContent>
@@ -811,7 +811,7 @@ export function ChatPane({ agent }: { agent: string }) {
                   onClick={() => void send()}
                   disabled={pending || !prompt.trim()}
                 >
-                  {pending ? <Loader2 className="size-3.5 animate-spin" /> : <SendHorizontal className="size-3.5" />}
+                  {pending ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
                   {pending ? "Running…" : "Send"}
                 </Button>
               </div>

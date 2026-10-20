@@ -138,7 +138,7 @@ export function Workspace() {
             className="h-7 gap-1.5 px-2 text-sm"
             onClick={() => setAddOpen(true)}
           >
-            <Plus className="size-3.5" /> Agent
+            <Plus /> Agent
           </Button>
           <div className="flex items-center rounded-md border bg-card p-0.5">
             {LAYOUTS.map((item) => {

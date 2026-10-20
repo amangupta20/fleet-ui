@@ -122,7 +122,7 @@ export function TranscriptPane({ agent }: { agent: string }) {
                 disabled={query.isFetching}
                 aria-label="Refresh transcript"
               >
-                {query.isFetching ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+                {query.isFetching ? <Loader2 className="animate-spin" /> : <RefreshCw />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>Refresh{lastSynced ? ` · ${lastSynced}` : ""}</TooltipContent>
@@ -136,16 +136,16 @@ export function TranscriptPane({ agent }: { agent: string }) {
                 disabled={messages.length === 0}
                 aria-label="Export transcript"
               >
-                <Download className="size-3.5" />
+                <Download />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onClick={copy}>
-                <Copy className="size-3.5" /> Copy
+                <Copy /> Copy
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportTranscript("txt")}>Export .txt</DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportTranscript("json")}>
-                <FileJson className="size-3.5" /> Export .json
+                <FileJson /> Export .json
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

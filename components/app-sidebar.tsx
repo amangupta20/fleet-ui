@@ -337,7 +337,7 @@ export function SidebarContent({
                   );
                 }}
               >
-                <Download className="size-3.5 rotate-180" /> Copy API name
+                <Download className="rotate-180" /> Copy API name
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openRename(row)}>
                 <Pencil className="size-3.5" /> Rename rail label

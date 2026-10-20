@@ -4,8 +4,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * OpenCode components: 4px radius (no pills), 1px borders, mono labels.
- * Colours come from the design-system tokens only.
+ * Badge: the radius comes from `--radius-badge` (pill in the shipped theme),
+ * borders are 1px, labels are mono. Colours come from the design-system
+ * tokens only.
  */
 const badgeVariants = cva(
   "inline-flex items-center gap-1 rounded-badge border px-2 py-0.5 font-mono text-sm leading-[1.4] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",

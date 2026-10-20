@@ -34,9 +34,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    // OpenCode Light #fdfcfc / OpenCode Dark #201d1d (see docs/design-system.md)
+    // OpenCode Light #fdfcfc / the picked black canvas (see docs/design-system.md)
     { media: "(prefers-color-scheme: light)", color: "#fdfcfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#201d1d" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
 };
 

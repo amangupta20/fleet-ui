@@ -1,14 +1,14 @@
 # Verification log
 
 Everything the console claims about the backend is checked with a `curl`
-against a running fleet-base (`celld dev`, pinned `7eb7e7b`) through the
+against a running fleet-base (`celld dev`, pinned `b6e898e`) through the
 same-origin proxy. The commands below are the ones used for this change; the
 output is what the commands printed.
 
 Setup used for every command:
 
 ```sh
-# fleet-base (pinned 7eb7e7b)
+# fleet-base (pinned b6e898e)
 cd fleet-base && npm run dev            # http://127.0.0.1:9876
 
 # fleet-ui (production build)
@@ -73,8 +73,8 @@ $ curl -s -X POST http://127.0.0.1:3000/api/agent/epoch-final/prompt \
 }
 ```
 
-The console files the epoch under exactly that value: the epoch header in
-`docs/screens/after-chat.png` reads `smoke_1792500534983_5cq3nq`, the
+That is the value the console files an epoch under: the epoch header in
+`docs/screens/after-chat.png` reads `smoke_1792500534983_5cq3nq` — the
 `submissionId` a smoke run returned for the same agent.
 
 ## 5. The live smoke test

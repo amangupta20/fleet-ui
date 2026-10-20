@@ -13,8 +13,7 @@ Same backend, same agent (`ui-smoke-tool`), same real `submissionId`
 |---|---|
 | ![Before — chat bubbles](before-chat.png) | ![After — epoch timeline](after-chat.png) |
 
-The agent rail before and after (reachability dot → lifecycle chip, sans → mono,
-pill radii → 4px):
+The agent rail before and after (reachability dot → lifecycle chip, sans → mono):
 
 | Before — rail | After — rail |
 |---|---|

@@ -15,13 +15,15 @@ import "@xterm/xterm/css/xterm.css";
  * prints no shell prompt and no fabricated output: there is no container, no
  * PTY, and no Worker call behind this surface.
  *
- * Colours come from the OpenCode design system (docs/design-system.md).
+ * xterm needs literal colours, so these repeat the theme tokens
+ * (docs/design-system.md -> "Literals"): the picked dark skin, and the
+ * OpenCode light palette.
  */
 const DARK_THEME = {
-  background: "#201d1d",
+  background: "#000000",
   foreground: "#fdfcfc",
   cursor: "#30d158",
-  selectionBackground: "rgba(0, 122, 255, 0.25)",
+  selectionBackground: "rgba(34, 211, 238, 0.25)",
 };
 
 const LIGHT_THEME = {
@@ -54,7 +56,8 @@ export function TerminalStub({ agent }: { agent: string }) {
         convertEol: true,
         cursorBlink: false,
         disableStdin: true,
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+        fontFamily:
+          "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
         fontSize: 14,
         lineHeight: 1.5,
         scrollback: 500,

@@ -130,7 +130,7 @@ function CatalogRow({
               title={`Copy ${ref}`}
             >
               <code className="truncate font-mono">{model.id}</code>
-              <Copy className="h-2.5 w-2.5 opacity-0 transition-opacity group-hover/ref:opacity-100" />
+              <Copy className="opacity-0 transition-opacity group-hover/ref:opacity-100" />
             </button>
           </div>
         </div>
@@ -168,7 +168,7 @@ function CatalogRow({
               aria-label={`Copy ${ref}`}
               disabled={!configured}
             >
-              <Copy className="h-3 w-3" />
+              <Copy />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copy provider/id</TooltipContent>
@@ -243,7 +243,7 @@ export function ProvidersDashboard() {
         <div className="flex items-center gap-2">
           {lastUpdated ? <span className="hidden text-sm text-muted-foreground sm:inline">synced {lastUpdated}</span> : null}
           <Button variant="outline" size="sm" onClick={() => void models.refetch()} disabled={models.isFetching}>
-            <RefreshCw className={cn("h-3.5 w-3.5", models.isFetching && "animate-spin")} />
+            <RefreshCw className={cn(models.isFetching && "animate-spin")} />
             Refresh
           </Button>
           <Button size="sm" asChild>
@@ -266,7 +266,7 @@ export function ProvidersDashboard() {
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={() => void models.refetch()}>
-              <RefreshCw className="h-3.5 w-3.5" /> Retry
+              <RefreshCw /> Retry
             </Button>
           </CardContent>
         </Card>
