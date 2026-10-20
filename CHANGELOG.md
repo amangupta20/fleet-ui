@@ -28,6 +28,7 @@ All notable changes to Fleet UI are documented here. The format is based on [Kee
 - Epoch metadata collapses to one line with an expandable **Run details**
   block; the watermark rule moved into a tooltip; helper rows are 12px gray.
 - The Files & diffs surface no longer draws a sample file tree or a sample diff; it renders the wired-but-empty diff region and says what the Worker does not return
+- The agent avatar is one neutral tile with the agent's initials: it no longer picks a palette slot by hashing the name, so a red avatar can no longer read as "error" — colour in the rail is reserved for state and source
 - The terminal stub keeps the disabled xterm canvas but drops the fake shell prompt, and is labelled `terminal — needs containers, not yet`
 
 ### Removed

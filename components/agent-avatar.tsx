@@ -1,26 +1,15 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Avatar tints come from the OpenCode tokens only (see
- * docs/design-system.md): accent blue, success green, warning orange, danger
- * red and two neutral surfaces.
+ * Agent avatar: a neutral tile with the agent's initials.
+ *
+ * It used to pick one of six palette slots by hashing the name, which put
+ * semantic colours on a decorative element — a red avatar read as "this
+ * agent is in error" and a blue one as "this agent is interactive". Colour in
+ * the rail is reserved for state (the lifecycle chip) and source (the origin
+ * badge); the initials carry the identity.
  */
-const PALETTES = [
-  "bg-brand/10 text-brand border-brand/30",
-  "bg-success/10 text-success border-success/30",
-  "bg-warning/10 text-warning border-warning/30",
-  "bg-destructive/10 text-destructive border-destructive/30",
-  "bg-muted text-muted-foreground border-border",
-  "bg-secondary text-secondary-foreground border-border",
-] as const;
-
-function hashName(name: string): number {
-  let hash = 0;
-  for (let index = 0; index < name.length; index += 1) {
-    hash = (hash * 31 + name.charCodeAt(index)) >>> 0;
-  }
-  return hash;
-}
+const AVATAR = "bg-muted text-muted-foreground border-border";
 
 export function agentInitials(name: string): string {
   const cleaned = name.trim();
@@ -41,7 +30,6 @@ export function AgentAvatar({
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
-  const palette = PALETTES[hashName(name) % PALETTES.length] ?? PALETTES[0];
   return (
     <span
       className={cn(
@@ -49,7 +37,7 @@ export function AgentAvatar({
         size === "sm" && "size-6 text-sm",
         size === "md" && "size-8 text-sm",
         size === "lg" && "size-10 text-sm",
-        palette,
+        AVATAR,
         className,
       )}
       aria-hidden

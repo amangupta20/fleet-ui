@@ -139,6 +139,7 @@ renders an elevation shadow.
 | Timeline row — tool result | muted left rail, mono preview in a bordered block, `800ch max` marker |
 | Timeline row — permission request | warning-orange bordered panel, `Approve` / `Deny` rendered **disabled** with the reason label |
 | Helper row | 12px muted gray (`.helper-text`) — the small notes under a row or an epoch |
+| Agent avatar | one neutral tile with the agent's initials — never a palette slot, so a red avatar cannot read as "error" |
 | Lifecycle chip | pill badge, 1px border, mono label, badge variant per state (`muted` / `outline` / `brand` / `destructive`) |
 | Epoch header | `epoch` label, `submissionId` in the accent colour with a copy button, status badge, prompt text at `16px/700`, one meta line (model · when · latency) and an expandable **Run details** block (ids, timestamps, HTTP status) |
 | Disabled revert control | `variant="outline"`, `disabled`, tooltip `needs backend checkpoint` |
