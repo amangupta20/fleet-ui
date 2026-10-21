@@ -1,14 +1,14 @@
 # Verification log
 
 Everything the console claims about the backend is checked with a `curl`
-against a running fleet-base (`celld dev`, pinned `b6e898e`) through the
+against a running fleet-base (`celld dev`, pinned `5062749`) through the
 same-origin proxy. The commands below are the ones used for this change; the
 output is what the commands printed.
 
 Setup used for every command:
 
 ```sh
-# fleet-base (pinned b6e898e)
+# fleet-base (pinned 5062749)
 cd fleet-base && npm run dev            # http://127.0.0.1:9876
 
 # fleet-ui (production build)
