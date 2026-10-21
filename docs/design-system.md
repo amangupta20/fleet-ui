@@ -207,21 +207,6 @@ Everything else is still the OpenCode template: one family, weights
 400/500/700, the flat zero-shadow depth model, the 8px spacing grid, and the
 same surfaces, type and layout.
 
-## Console theme at a glance
-
-The console uses **one** design system, applied end to end: **[OpenCode](https://opencode.ai)**, taken from the `popular-web-designs` skill in this repo (`.agents/skills/popular-web-designs/templates/opencode.ai.md`). Type, spacing and the depth model come from that template; the dark theme is the console skin picked from three theme demos (black canvas, emerald + cyan, 16px cards) — no second palette is mixed in, and no raw hex or one-off spacing scale is introduced.
-
-- **Colour (dark)** — canvas `#000000`, cards `#0c0c0c`, muted `#141414`, borders `#262626`, muted text `#8a8a8a`; **emerald `#30d158`** for fleet state (success, the `FLEET` badge, the selected row), **cyan `#22d3ee`** for anything interactive (links, the user turn, the active tab), Warning Orange `#ff9f0a`, Danger Red `#ff3b30`.
-- **Colour (light)** — the OpenCode light palette: OpenCode Light `#fdfcfc`, Input Light `#f8f7f7`, Light Surface `#f1eeee`, Accent Blue `#007aff`, Success Green `#30d158`, Border Warm `rgba(15, 0, 0, 0.12)`.
-- **Type** — one family for UI and code (the template's mono stack), weights 400/500/700, sizes 14px / 16px.
-- **Radius** — 16px cards, 10px controls, pill badges.
-- **Depth** — flat: borders and background shifts, no shadows.
-- **Spacing** — an 8px base grid with 1/2/4px micro steps.
-
-The full token table, the pick record, the console type mapping and the per-surface recipes are in **[docs/design-system.md](design-system.md)**.
-
----
-
 ## Rules
 
 - No colour outside this document. If a surface needs a new colour, it gets a

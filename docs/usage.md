@@ -43,7 +43,7 @@ No provider keys, passwords, or fleet URLs are compiled into the client bundle.
 The rail is a **merge selector**, not a browser-owned list:
 
 - **Fleet** — `GET /agents?limit=200` through the same-origin proxy. The Registry DO returns names, `lastActive`, and `prompts`; rows show relative activity and prompt count, sorted most-recent first.
-- **Paperclip** — optional server-only directory (above). Its section is hidden when `PAPERCLIP_URL`/`PAPERCLIP_API_KEY` are unset or the list is empty.
+- **Paperclip** — optional server-only directory (see [configuration](configuration.md#paperclip-optional)). Its section is hidden when `PAPERCLIP_URL`/`PAPERCLIP_API_KEY` are unset or the list is empty.
 - **Local** — `localStorage` recents and local-only shortcuts. This is now a **fallback**, not the source of truth. If the Worker is offline or the proxy returns a sanitized `502`, the rail still renders local recents.
 - Names are unioned across sources: **fleet wins over Paperclip, which wins over local**. One badge per row shows the winning origin; local metadata (model override, rail label, star) is retained without changing the row's source.
 - Clicking any row uses the existing chat flow: `GET /agent/:name/messages` + `POST /agent/:name/prompt`, with `encodeURIComponent` applied to the name on every request. Displayed names are decoded.

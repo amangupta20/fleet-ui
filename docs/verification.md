@@ -1,14 +1,14 @@
 # Verification log
 
 Everything the console claims about the backend is checked with a `curl`
-against a running fleet-base (`celld dev`, pinned `5062749`) through the
+against a running fleet-base (`celld dev`) through the
 same-origin proxy. The commands below are the ones used for this change; the
 output is what the commands printed.
 
 Setup used for every command:
 
 ```sh
-# fleet-base (pinned 5062749)
+# fleet-base: checkout a2678bd (base main 5062749)
 cd fleet-base && npm run dev            # http://127.0.0.1:9876
 
 # fleet-ui (production build)
@@ -24,12 +24,12 @@ allow: GET, POST, HEAD, OPTIONS
 
 ## 2. `GET /agent/:name/messages` clamps `limit` to 1–100 and defaults to 20
 
-The agent below had 48 durable messages, so the clamp is visible in both
+The agent below had 70 durable messages, so the clamp is visible in both
 directions.
 
 ```sh
 $ curl -s "http://127.0.0.1:3000/api/agent/ui-smoke-tool/messages?limit=5000" | jq '.messages | length'
-48          # clamped to 100, the agent only has 48
+70          # clamped to 100, the agent only has 70
 $ curl -s "http://127.0.0.1:3000/api/agent/ui-smoke-tool/messages?limit=5" | jq '.messages | length'
 5
 $ curl -s "http://127.0.0.1:3000/api/agent/ui-smoke-tool/messages?limit=1" | jq '.messages | length'
@@ -63,11 +63,11 @@ browser-local recents in the order **fleet > paperclip > local**
 ```sh
 $ curl -s -X POST http://127.0.0.1:3000/api/agent/epoch-final/prompt \
     -H 'content-type: application/json' \
-    -d '{"prompt":"Reply with exactly: epoch final proof","requestId":"epoch_final_002"}'
+    -d '{"prompt":"Reply with exactly: epoch final proof","requestId":"epoch_final_003"}'
 {
   "text": "epoch final proof",
-  "submissionId": "epoch_final_002",
-  "operationId": "epoch_final_002",
+  "submissionId": "epoch_final_003",
+  "operationId": "epoch_final_003",
   "status": "done",
   "reason": null
 }

@@ -87,7 +87,7 @@ Covers agent-name validation/encoding/decoding, the three-source merge selector 
 
 ### Live verification
 
-Every live claim in this README is checked with a `curl` against a running
+Every live claim in these docs is checked with a `curl` against a running
 `celld dev` — the commands and their output are recorded in
 **[docs/verification.md](verification.md)** (Allow header, message-limit
 clamp and default, rail source, `submissionId`, live smoke run). Screenshots
