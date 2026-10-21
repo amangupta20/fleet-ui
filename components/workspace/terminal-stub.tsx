@@ -8,36 +8,29 @@ import { useTheme } from "next-themes";
 import { Badge } from "@/components/ui/badge";
 import "@xterm/xterm/css/xterm.css";
 
+/**
+ * Terminal stub.
+ *
+ * The xterm canvas stays disabled (`disableStdin`) and renders locally. It
+ * prints no shell prompt and no fabricated output: there is no container, no
+ * PTY, and no Worker call behind this surface.
+ *
+ * xterm needs literal colours, so these repeat the theme tokens
+ * (docs/design-system.md -> "Literals"): the picked dark skin, and the
+ * OpenCode light palette.
+ */
 const DARK_THEME = {
-  background: "#080b09",
-  foreground: "#d7e4dc",
-  cursor: "#34d399",
-  selectionBackground: "rgba(52, 211, 153, 0.25)",
-  black: "#0b0f0d",
-  red: "#f87171",
-  green: "#34d399",
-  yellow: "#fbbf24",
-  blue: "#60a5fa",
-  magenta: "#c084fc",
-  cyan: "#2dd4bf",
-  white: "#e5e7eb",
-  brightBlack: "#4b5563",
+  background: "#000000",
+  foreground: "#fdfcfc",
+  cursor: "#30d158",
+  selectionBackground: "rgba(34, 211, 238, 0.25)",
 };
 
 const LIGHT_THEME = {
-  background: "#faf9f6",
-  foreground: "#1c2320",
-  cursor: "#0f766e",
-  selectionBackground: "rgba(13, 148, 136, 0.2)",
-  black: "#1c2320",
-  red: "#b91c1c",
-  green: "#047857",
-  yellow: "#b45309",
-  blue: "#1d4ed8",
-  magenta: "#7e22ce",
-  cyan: "#0f766e",
-  white: "#f8fafc",
-  brightBlack: "#6b7280",
+  background: "#fdfcfc",
+  foreground: "#201d1d",
+  cursor: "#007aff",
+  selectionBackground: "rgba(0, 122, 255, 0.2)",
 };
 
 export function TerminalStub({ agent }: { agent: string }) {
@@ -61,11 +54,12 @@ export function TerminalStub({ agent }: { agent: string }) {
       const terminal = new Terminal({
         allowProposedApi: true,
         convertEol: true,
-        cursorBlink: true,
+        cursorBlink: false,
         disableStdin: true,
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
-        fontSize: 12,
-        lineHeight: 1.35,
+        fontFamily:
+          "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+        fontSize: 14,
+        lineHeight: 1.5,
         scrollback: 500,
         theme: isDark ? DARK_THEME : LIGHT_THEME,
       });
@@ -80,20 +74,15 @@ export function TerminalStub({ agent }: { agent: string }) {
         // Hidden panes can report zero dimensions; the observer retries.
       }
 
-      const dim = "\x1b[90m";
-      const green = "\x1b[32m";
-      const yellow = "\x1b[33m";
-      const reset = "\x1b[0m";
-      terminal.writeln(`${green}fleet-ui${reset} ${dim}// xterm.js local surface${reset}`);
-      terminal.writeln(`${dim}agent${reset}  ${agent}`);
-      terminal.writeln(`${dim}transport${reset}  ${yellow}not connected (stub)${reset}`);
+      // Plain text only: this surface must not look like a working shell.
+      terminal.writeln("fleet-ui // xterm.js local surface");
+      terminal.writeln(`agent     ${agent}`);
+      terminal.writeln("transport not connected (stub)");
       terminal.writeln("");
-      terminal.writeln(`${yellow}This terminal is a UI stub.${reset} It renders locally and sends no`);
-      terminal.writeln("bytes to the fleet Worker. A real PTY transport is on the");
-      terminal.writeln("roadmap behind the terminal feature flag.");
+      terminal.writeln("This terminal is a UI stub. It renders locally and sends no");
+      terminal.writeln("bytes to the fleet Worker.");
       terminal.writeln("");
-      terminal.writeln(`${dim}${"─".repeat(46)}${reset}`);
-      terminal.write(`${green}${agent}@fleet${reset}:${dim}~${reset}$ `);
+      terminal.writeln("terminal - needs containers, not yet");
 
       resizeObserver = new ResizeObserver(() => {
         try {
@@ -127,21 +116,21 @@ export function TerminalStub({ agent }: { agent: string }) {
   }, [resolvedTheme]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#080b09]">
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-white/10 px-3 py-2 text-[11px] text-zinc-300">
-        <SquareTerminal className="h-3.5 w-3.5 text-emerald-400" />
-        <span className="font-medium">terminal — {agent}</span>
-        <Badge variant="warning" className="border-amber-400/20 bg-amber-400/10 text-[9px] text-amber-300">
-          stub · flag on
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2 font-mono text-sm text-muted-foreground">
+        <SquareTerminal className="size-3.5 text-success" />
+        <span className="font-medium text-foreground">terminal — needs containers, not yet</span>
+        <Badge variant="warning" className="text-sm">
+          stub
         </Badge>
-        <span className="ml-auto flex items-center gap-1.5 text-[10px] text-zinc-500">
-          <WifiOff className="h-3 w-3" /> local xterm only
+        <span className="ml-auto flex items-center gap-1.5 text-sm">
+          <WifiOff /> local xterm only · agent {agent}
         </span>
       </div>
       <div className="min-h-0 flex-1 p-2">
-        <div ref={containerRef} className="h-full w-full overflow-hidden rounded border border-white/10" />
+        <div ref={containerRef} className="h-full w-full overflow-hidden rounded-lg border" />
       </div>
-      <div className="shrink-0 border-t border-white/10 px-3 py-1.5 font-mono text-[10px] text-zinc-500">
+      <div className="shrink-0 border-t px-3 py-1.5 font-mono text-sm text-muted-foreground">
         transport: disabled · xterm.js {`v6`} installed · no Worker calls
       </div>
     </div>

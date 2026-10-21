@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { AddAgentDialog } from "@/components/add-agent-dialog";
 import { AgentAvatar } from "@/components/agent-avatar";
 import { ChatPane } from "@/components/workspace/chat-pane";
+import { LifecycleChip } from "@/components/workspace/lifecycle-chip";
 import { FilesStub } from "@/components/workspace/files-stub";
 import { PaneEmpty } from "@/components/workspace/pane-empty";
 import { TerminalStub } from "@/components/workspace/terminal-stub";
@@ -43,6 +44,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAgentDirectory, useAgentState, useResetAgent } from "@/hooks/use-fleet";
 import { decodeAgentName } from "@/lib/agent-name";
+import { deriveAgentLifecycle } from "@/lib/lifecycle";
 import { cn, errorMessage } from "@/lib/utils";
 import { useChatStore } from "@/stores/chat-store";
 import { useFleetStore } from "@/stores/fleet-store";
@@ -71,6 +73,8 @@ export function AgentPane({
   const clearAgent = useChatStore((state) => state.clearAgent);
   const resetAgent = useResetAgent();
   const stateQuery = useAgentState(agentName);
+  const inflight = useChatStore((state) => (agentName ? state.inflightByAgent[agentName] : undefined));
+  const agentRuns = useChatStore((state) => (agentName ? state.runsByAgent[agentName] : undefined));
 
   useEffect(() => {
     if (tab === "terminal" && !features.terminal) setTab("chat");
@@ -84,8 +88,11 @@ export function AgentPane({
   if (!agentName) return <PaneEmpty index={index} />;
 
   const displayAgentName = decodeAgentName(agentName);
-  const online = stateQuery.isSuccess;
-  const checking = stateQuery.isPending;
+  const lifecycle = deriveAgentLifecycle({
+    probe: stateQuery,
+    promptInFlight: Boolean(inflight),
+    lastRun: agentRuns && agentRuns.length > 0 ? agentRuns[agentRuns.length - 1] : null,
+  });
 
   const handleReset = async () => {
     try {
@@ -101,7 +108,7 @@ export function AgentPane({
   };
 
   return (
-    <div className={cn("pane-surface h-full", isActive && "ring-1 ring-primary/10")}>
+    <div className={cn("pane-surface h-full", isActive && "ring-1 ring-brand/10")}>
       <div className="flex shrink-0 items-center gap-2 border-b px-2.5 py-2">
         <DropdownMenu open={switchOpen} onOpenChange={setSwitchOpen}>
           <DropdownMenuTrigger asChild>
@@ -113,18 +120,12 @@ export function AgentPane({
               <AgentAvatar name={displayAgentName} size="md" />
               <span className="min-w-0">
                 <span className="flex items-center gap-1.5">
-                  <span className="truncate text-[13px] font-semibold leading-tight">{displayAgentName}</span>
-                  <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  <span className="truncate text-sm font-medium leading-tight">{displayAgentName}</span>
+                  <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
                 </span>
-                <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground">
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      checking ? "bg-muted-foreground/50" : online ? "bg-emerald-500" : "bg-rose-500",
-                    )}
-                  />
-                  {checking ? "checking cell" : online ? "cell reachable" : "unreachable"}
-                  <span className="mx-1 text-border">·</span>pane {index + 1}
+                <span className="flex items-center gap-1.5 font-mono text-sm leading-tight text-muted-foreground">
+                  <LifecycleChip lifecycle={lifecycle} className="px-1" />
+                  <span className="mx-0.5 text-border">·</span>pane {index + 1}
                 </span>
               </span>
             </button>
@@ -147,7 +148,7 @@ export function AgentPane({
                   <AgentAvatar name={displayName} size="sm" />
                   <span className="truncate">{displayName}</span>
                   {agent.name === agentName ? (
-                    <span className="ml-auto font-mono text-[9px] text-muted-foreground">current</span>
+                    <span className="ml-auto font-mono text-sm text-muted-foreground">current</span>
                   ) : null}
                 </DropdownMenuItem>
               );
@@ -159,7 +160,7 @@ export function AgentPane({
                 setAddOpen(true);
               }}
             >
-              <Plus className="h-3.5 w-3.5" /> Add new agent
+              <Plus /> Add new agent
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -170,36 +171,36 @@ export function AgentPane({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="h-7 w-7"
+                className="size-7"
                 onClick={() => setTab("transcript")}
                 aria-label="Open durable transcript"
               >
-                <ScrollText className="h-3.5 w-3.5" />
+                <ScrollText />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Durable transcript</TooltipContent>
           </Tooltip>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="h-7 w-7" aria-label="Pane actions">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon-sm" className="size-7" aria-label="Pane actions">
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel className="truncate">{displayAgentName}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setTab("chat")}>
-                <MessageSquareText className="h-3.5 w-3.5" /> Chat
+                <MessageSquareText /> Chat
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTab("transcript")}>
-                <ScrollText className="h-3.5 w-3.5" /> Durable transcript
+                <ScrollText /> Durable transcript
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => setResetOpen(true)}
               >
-                <RotateCcw className="h-3.5 w-3.5" /> Reset agent
+                <RotateCcw /> Reset agent
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -211,29 +212,29 @@ export function AgentPane({
           <TabsList className="h-8 gap-0.5 bg-transparent p-0">
             <TabsTrigger
               value="chat"
-              className="h-7 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-[11px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
             >
-              <MessageSquareText className="h-3.5 w-3.5" />
+              <MessageSquareText />
               Chat
               {runCount > 0 ? (
-                <span className="rounded bg-muted px-1 font-mono text-[9px] text-muted-foreground">{runCount}</span>
+                <span className="rounded bg-muted px-1 font-mono text-sm text-muted-foreground">{runCount}</span>
               ) : null}
             </TabsTrigger>
             <TabsTrigger
               value="transcript"
-              className="h-7 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-[11px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
             >
-              <ScrollText className="h-3.5 w-3.5" />
+              <ScrollText />
               Transcript
             </TabsTrigger>
             {features.terminal ? (
               <TabsTrigger
                 value="terminal"
-                className="h-7 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-[11px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
               >
-                <SquareTerminal className="h-3.5 w-3.5" />
+                <SquareTerminal />
                 Terminal
-                <span className="rounded bg-amber-500/10 px-1 font-mono text-[8px] text-amber-600 dark:text-amber-400">
+                <span className="rounded bg-warning/10 px-1 font-mono text-sm text-warning">
                   stub
                 </span>
               </TabsTrigger>
@@ -241,9 +242,9 @@ export function AgentPane({
             {features.files ? (
               <TabsTrigger
                 value="files"
-                className="h-7 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-[11px] data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                className="h-8 gap-1.5 rounded-none border-b-2 border-transparent px-2 text-sm data-[state=active]:border-brand data-[state=active]:bg-transparent"
               >
-                <FileDiff className="h-3.5 w-3.5" />
+                <FileDiff />
                 Files
               </TabsTrigger>
             ) : null}
@@ -293,7 +294,7 @@ export function AgentPane({
               disabled={resetAgent.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              <RotateCcw className={cn("h-4 w-4", resetAgent.isPending && "animate-spin")} />
+              <RotateCcw className={cn("size-4", resetAgent.isPending && "animate-spin")} />
               {resetAgent.isPending ? "Resetting…" : "Reset agent"}
             </AlertDialogAction>
           </AlertDialogFooter>

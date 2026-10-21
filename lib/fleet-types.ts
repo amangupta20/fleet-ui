@@ -38,6 +38,10 @@ export interface MessageEntry {
   id: string | number | null;
   kind: string | null;
   preview: string;
+  /** File a tool touched. Only present once the Worker returns file data. */
+  filePath?: string | null;
+  /** Patch for that file. Only present once the Worker returns file data. */
+  diff?: { before?: string | null; after?: string | null } | null;
 }
 
 export interface MessagesResponse {

@@ -95,8 +95,8 @@ export function LabsPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight">Labs</h1>
-            <Badge variant="outline" className="font-mono text-[9px]">
+            <h1 className="text-base font-bold leading-[1.5]">Labs</h1>
+            <Badge variant="outline" className="font-mono text-sm">
               future flags
             </Badge>
           </div>
@@ -106,7 +106,7 @@ export function LabsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted-foreground">{enabledCount} enabled</span>
+          <span className="text-sm text-muted-foreground">{enabledCount} enabled</span>
           <Button
             variant="outline"
             size="sm"
@@ -119,27 +119,27 @@ export function LabsPage() {
           </Button>
           <Button size="sm" asChild>
             <Link href="/">
-              <FlaskConical className="h-3.5 w-3.5" /> Workspace
+              <FlaskConical className="size-3.5" /> Workspace
             </Link>
           </Button>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-primary/15 bg-primary/[0.035] p-4">
+      <div className="mt-5 rounded border border-brand/15 bg-brand/[0.035] p-4">
         <div className="flex items-start gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-            <FlaskConical className="h-4 w-4 text-primary" />
+          <span className="flex size-8 shrink-0 items-center justify-center rounded border border-brand/20 bg-brand/10">
+            <FlaskConical className="size-4 text-brand" />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-medium">Stubs, not fake features</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
               Every preview below is inert and clearly labelled. Terminal renders a real xterm.js canvas locally;
               files, MCP, queues, vault, node ops, and analytics are static placeholders. Terminal and Files also
               appear as pane tabs when enabled.
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {V1_SURFACES.map((surface) => (
-                <Badge key={surface} variant="secondary" className="text-[9px]">
+                <Badge key={surface} variant="secondary" className="text-sm">
                   v1 · {surface}
                 </Badge>
               ))}
@@ -155,27 +155,27 @@ export function LabsPage() {
           return (
             <Card
               key={feature.key}
-              className={cn("overflow-hidden transition-colors", enabled && "border-primary/25 bg-primary/[0.015]")}
+              className={cn("overflow-hidden transition-colors", enabled && "border-brand/25 bg-brand/[0.015]")}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-2.5">
                     <span
                       className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border",
-                        enabled ? "border-primary/25 bg-primary/10 text-primary" : "bg-muted/40 text-muted-foreground",
+                        "flex size-9 shrink-0 items-center justify-center rounded border",
+                        enabled ? "border-brand/25 bg-brand/10 text-brand" : "bg-muted/40 text-muted-foreground",
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="size-4" />
                     </span>
                     <div className="min-w-0">
                       <CardTitle className="flex flex-wrap items-center gap-1.5 text-sm">
                         {feature.label}
-                        <Badge variant={enabled ? "default" : "muted"} className="text-[8px]">
+                        <Badge variant={enabled ? "default" : "muted"} className="text-sm">
                           {enabled ? "preview on" : "planned"}
                         </Badge>
                       </CardTitle>
-                      <CardDescription className="mt-0.5 text-xs leading-relaxed">
+                      <CardDescription className="mt-0.5 text-sm leading-relaxed">
                         {feature.description}
                       </CardDescription>
                     </div>
@@ -196,14 +196,14 @@ export function LabsPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant="outline" className="font-mono text-[8px]">
+                  <Badge variant="outline" className="font-mono text-sm">
                     {feature.surface}
                   </Badge>
-                  <Badge variant="muted" className="text-[8px]">
+                  <Badge variant="muted" className="text-sm">
                     no backend calls
                   </Badge>
                   {feature.key === "terminal" || feature.key === "files" ? (
-                    <Link href="/" className="ml-auto text-[10px] text-primary hover:underline">
+                    <Link href="/" className="ml-auto text-sm text-brand hover:underline">
                       add pane tab →
                     </Link>
                   ) : null}
@@ -211,13 +211,13 @@ export function LabsPage() {
                 {enabled ? (
                   <>
                     <Preview featureKey={feature.key} />
-                    <p className="mt-2 flex items-start gap-1.5 text-[10px] leading-relaxed text-muted-foreground">
-                      <Wand2 className="mt-0.5 h-3 w-3 shrink-0" />
+                    <p className="mt-2 flex items-start gap-1.5 text-sm leading-relaxed text-muted-foreground">
+                      <Wand2 className="mt-0.5 size-3 shrink-0" />
                       {feature.hint}
                     </p>
                   </>
                 ) : (
-                  <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">{feature.hint}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{feature.hint}</p>
                 )}
               </CardContent>
             </Card>
@@ -229,16 +229,16 @@ export function LabsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <SquareTerminal className="h-4 w-4 text-primary" /> Terminal & files flag behavior
+              <SquareTerminal className="size-4 text-brand" /> Terminal & files flag behavior
             </CardTitle>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Enabling terminal or files adds a tab inside each agent pane. Both are safe to leave on — they never
               issue a request.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
+          <CardContent className="text-sm text-muted-foreground">
             <p>
-              The terminal is a real xterm.js instance with input disabled. Files is a mocked tree and diff view.
+              The terminal is a real xterm.js instance with input disabled. Files is an empty diff region: no file transport exists yet, so nothing is drawn.
               Turning either flag off removes the tab immediately; active panes fall back to Chat.
             </p>
           </CardContent>
@@ -246,18 +246,18 @@ export function LabsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Wand2 className="h-4 w-4 text-primary" /> Delivery roadmap
+              <Wand2 className="size-4 text-brand" /> Delivery roadmap
             </CardTitle>
-            <CardDescription className="text-xs">What must exist before these stubs become features.</CardDescription>
+            <CardDescription className="text-sm">What must exist before these stubs become features.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-1.5 text-xs text-muted-foreground">
+            <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
               <li>• Worker endpoints for files, queues, preview routing, MCP, and skills</li>
               <li>• Per-agent auth and scoped secrets for vault and node operations</li>
               <li>• Streaming terminal transport (WebSocket/SSE) with backpressure</li>
               <li>• Analytics rollups from durable run metrics, not browser-only logs</li>
             </ul>
-            <p className="mt-3 text-[10px] text-muted-foreground">
+            <p className="mt-3 text-sm text-muted-foreground">
               See the README roadmap. These stubs intentionally stop at the UI boundary.
             </p>
           </CardContent>

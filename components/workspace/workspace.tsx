@@ -37,13 +37,13 @@ function PaneSwitcher() {
             type="button"
             onClick={() => setActivePane(index)}
             className={cn(
-              "flex min-w-0 flex-1 items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
+              "flex min-w-0 flex-1 items-center gap-2 rounded-md border px-2 py-1.5 text-left text-sm transition-colors",
               activePane === index
-                ? "border-primary/30 bg-primary/5 text-foreground"
+                ? "border-brand/30 bg-brand/5 text-foreground"
                 : "bg-card text-muted-foreground",
             )}
           >
-            <span className="font-mono text-[10px] text-muted-foreground">{index + 1}</span>
+            <span className="font-mono text-sm text-muted-foreground">{index + 1}</span>
             {pane ? (
               <>
                 <AgentAvatar name={pane} size="sm" />
@@ -64,23 +64,23 @@ function EmptyFleet() {
   return (
     <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6">
       <div className="pointer-events-none absolute inset-0 fleet-grid-bg opacity-50" aria-hidden />
-      <div className="relative z-10 w-full max-w-md rounded-xl border bg-card/95 p-8 text-center shadow-2xl">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/5">
+      <div className="relative z-10 w-full max-w-md rounded border bg-card/95 p-8 text-center">
+        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded border border-brand/20 bg-brand/5">
           <span className="grid grid-cols-2 gap-1">
             {Array.from({ length: 4 }, (_, index) => (
-              <span key={index} className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+              <span key={index} className="size-1.5 rounded-full bg-brand/70" />
             ))}
           </span>
         </div>
-        <h2 className="text-lg font-semibold tracking-tight">Start your fleet</h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+        <h2 className="text-base font-bold leading-[1.5]">Start your fleet</h2>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-[1.5] text-muted-foreground">
           Add any Durable Object name you want to address. Each name is a persistent Pi agent with its own
           transcript, model pin, and idempotent runs.
         </p>
         <Button className="mt-6" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" /> Add your first agent
+          <Plus /> Add your first agent
         </Button>
-        <p className="mt-4 font-mono text-[11px] text-muted-foreground">
+        <p className="mt-4 font-mono text-sm text-muted-foreground">
           POST /agent/&lt;name&gt;/prompt → celld
         </p>
       </div>
@@ -111,19 +111,19 @@ export function Workspace() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-background/70 px-3 py-2 md:px-4">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">
+          <span className="text-sm font-medium text-muted-foreground">
             {directory.rows.length} agent{directory.rows.length === 1 ? "" : "s"}
           </span>
           <span className="h-3 w-px bg-border" />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {layout} pane{layout === 1 ? "" : "s"}
           </span>
           {models.data?.default ? (
             <>
               <span className="hidden h-3 w-px bg-border sm:block" />
-              <span className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex">
+              <span className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
                 default
-                <code className="max-w-[180px] truncate rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-foreground">
+                <code className="max-w-[180px] truncate rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground">
                   {models.data.default.provider}/{models.data.default.id}
                 </code>
               </span>
@@ -135,10 +135,10 @@ export function Workspace() {
           <Button
             variant="outline"
             size="sm"
-            className="h-7 gap-1.5 px-2 text-xs"
+            className="h-7 gap-1.5 px-2 text-sm"
             onClick={() => setAddOpen(true)}
           >
-            <Plus className="h-3.5 w-3.5" /> Agent
+            <Plus /> Agent
           </Button>
           <div className="flex items-center rounded-md border bg-card p-0.5">
             {LAYOUTS.map((item) => {
@@ -151,13 +151,13 @@ export function Workspace() {
                       size="icon-sm"
                       className={cn(
                         "h-6 w-7 rounded-sm",
-                        layout === item.value && "bg-primary/10 text-primary hover:bg-primary/15",
+                        layout === item.value && "bg-brand/10 text-brand hover:bg-brand/15",
                       )}
                       onClick={() => setLayout(item.value)}
                       aria-label={item.label}
                       aria-pressed={layout === item.value}
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>{item.label}</TooltipContent>

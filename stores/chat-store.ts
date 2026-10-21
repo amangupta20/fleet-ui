@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { ChatRun } from "@/lib/chat-types";
+import type { InflightPrompt } from "@/lib/timeline";
 
 export interface LastRequest {
   requestId: string;
@@ -18,10 +19,13 @@ const MAX_TEXT_CHARS = 80_000;
 interface ChatStore {
   runsByAgent: Record<string, ChatRun[]>;
   lastRequestByAgent: Record<string, LastRequest>;
+  /** Prompt in flight per agent, so the rail can show a `running` lifecycle. */
+  inflightByAgent: Record<string, InflightPrompt>;
   addRun: (agent: string, run: ChatRun) => void;
   removeRun: (agent: string, runId: string) => void;
   clearAgent: (agent: string) => void;
   setLastRequest: (agent: string, request: LastRequest) => void;
+  setInflight: (agent: string, value: InflightPrompt | null) => void;
   clearAll: () => void;
 }
 
@@ -36,6 +40,7 @@ export const useChatStore = create<ChatStore>()(
     (set) => ({
       runsByAgent: {},
       lastRequestByAgent: {},
+      inflightByAgent: {},
 
       addRun: (agent, run) => {
         set((state) => {
@@ -71,12 +76,26 @@ export const useChatStore = create<ChatStore>()(
         }));
       },
 
-      clearAll: () => set({ runsByAgent: {}, lastRequestByAgent: {} }),
+      setInflight: (agent, value) => {
+        set((state) => {
+          const inflightByAgent = { ...state.inflightByAgent };
+          if (value) inflightByAgent[agent] = value;
+          else delete inflightByAgent[agent];
+          return { inflightByAgent };
+        });
+      },
+
+      clearAll: () => set({ runsByAgent: {}, lastRequestByAgent: {}, inflightByAgent: {} }),
     }),
     {
       name: "fleet-ui.chat.v1",
       version: 1,
       storage: createJSONStorage(() => localStorage),
+      // Live prompt state is never persisted.
+      partialize: (state) => ({
+        runsByAgent: state.runsByAgent,
+        lastRequestByAgent: state.lastRequestByAgent,
+      }),
     },
   ),
 );

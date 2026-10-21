@@ -16,25 +16,25 @@ export function WorkerStatus({ compact = false }: { compact?: boolean }) {
       <TooltipTrigger asChild>
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium",
+            "inline-flex items-center gap-1.5 rounded border px-2 py-1 font-mono text-sm font-medium",
             online
-              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              ? "border-success/30 bg-success/10 text-success"
               : checking
                 ? "border-border bg-muted text-muted-foreground"
-                : "border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-400",
+                : "border-destructive/30 bg-destructive/10 text-destructive",
           )}
         >
           {checking ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
+            <Loader2 className="size-3.5 animate-spin" />
           ) : online ? (
-            <CheckCircle2 className="h-3 w-3" />
+            <CheckCircle2 className="size-3.5" />
           ) : (
-            <AlertCircle className="h-3 w-3" />
+            <AlertCircle className="size-3.5" />
           )}
           <span className={compact ? "hidden sm:inline" : ""}>
             {checking ? "Checking worker" : online ? "Worker online" : "Worker offline"}
           </span>
-          {online ? <span className="hidden font-mono text-[10px] opacity-70 md:inline">/health ok</span> : null}
+          {online ? <span className="hidden font-mono text-sm opacity-70 md:inline">/health ok</span> : null}
         </span>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="max-w-xs">

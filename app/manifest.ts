@@ -10,8 +10,9 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "any",
-    background_color: "#0a0a0c",
-    theme_color: "#0a0a0c",
+    // The picked console skin: black canvas, cyan accent (see docs/design-system.md)
+    background_color: "#000000",
+    theme_color: "#000000",
     categories: ["developer", "productivity"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

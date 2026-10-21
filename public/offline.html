@@ -4,24 +4,29 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="theme-color" content="#000000" />
     <title>Offline · Fleet UI</title>
     <style>
       :root {
         color-scheme: dark light;
-        --bg: #0a0a0c;
-        --fg: #ecebe6;
-        --muted: #8e8e94;
-        --border: #26262b;
-        --card: #101013;
-        --primary: #34d399;
-        --primary-fg: #04130c;
+        --bg: #000000;
+        --fg: #fdfcfc;
+        --muted: #8a8a8a;
+        --border: #262626;
+        --card: #0c0c0c;
+        --primary: #22d3ee;
+        --primary-fg: #000000;
         --grid: rgba(255, 255, 255, 0.045);
       }
       @media (prefers-color-scheme: light) {
         :root {
-          --bg: #faf9f6;
-          --fg: #15171a;
+          --bg: #fdfcfc;
+          --fg: #201d1d;
+          --muted: #6e6e73;
+          --border: #e6e3df;
+          --card: #f8f7f7;
+          --primary: #007aff;
+          --primary-fg: #fdfcfc;
           --muted: #68686f;
           --border: #dedbd3;
           --card: #ffffff;
@@ -64,7 +69,7 @@
         place-items: center;
         border: 1px solid var(--border);
         border-radius: 12px;
-        background: #0b0f0d;
+        background: #000000;
       }
       .badge {
         display: inline-flex;
@@ -134,14 +139,14 @@
     <main class="card">
       <div class="logo" aria-hidden="true">
         <svg viewBox="0 0 64 64" width="30" height="30">
-          <g stroke="#34d399" stroke-width="4" stroke-linecap="round">
+          <g stroke="#22d3ee" stroke-width="4" stroke-linecap="round">
             <path d="M18 20h28" />
             <path d="M18 32h13" />
             <path d="M18 44h28" />
           </g>
-          <circle cx="46" cy="32" r="4.5" fill="#34d399" />
-          <circle cx="31" cy="20" r="3" fill="#5eead4" />
-          <circle cx="31" cy="44" r="3" fill="#5eead4" />
+          <circle cx="46" cy="32" r="4.5" fill="#22d3ee" />
+          <circle cx="31" cy="20" r="3" fill="#fdfcfc" />
+          <circle cx="31" cy="44" r="3" fill="#fdfcfc" />
         </svg>
       </div>
       <span class="badge">offline shell</span>

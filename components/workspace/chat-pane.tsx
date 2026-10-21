@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 
 import { AgentAvatar } from "@/components/agent-avatar";
-import { PendingRun, RunCard } from "@/components/workspace/run-card";
+import { AgentTimeline } from "@/components/workspace/timeline";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,13 +47,14 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useModels, usePromptAgent } from "@/hooks/use-fleet";
+import { useMessages, useModels, usePromptAgent } from "@/hooks/use-fleet";
 import { decodeAgentName } from "@/lib/agent-name";
 import { FleetApiError } from "@/lib/fleet-api";
 import type { CatalogModel } from "@/lib/fleet-types";
 import { isValidRequestId, generateRequestId } from "@/lib/request-id";
 import type { ChatRun } from "@/lib/chat-types";
 import { buildJsonExport, buildMarkdownExport, buildPlainTranscript } from "@/lib/export";
+import { buildTimeline, maxMessageId } from "@/lib/timeline";
 import { providerLabel, providerAccent, PROVIDER_ORDER } from "@/lib/model";
 import {
   cn,
@@ -128,14 +129,14 @@ function ModelPicker({
 
   return (
     <div className="flex min-w-0 items-center gap-0.5">
-      <Cpu className="h-3 w-3 shrink-0 text-muted-foreground" />
+      <Cpu className="size-3 shrink-0 text-muted-foreground" />
       <Select
         value={value ?? "__default__"}
         onValueChange={(next) => setAgentModel(agent, next === "__default__" ? null : next)}
         disabled={models.isLoading}
       >
         <SelectTrigger
-          className="h-6 w-auto max-w-[190px] gap-1 border-0 bg-transparent px-1.5 text-[10px] font-medium text-muted-foreground shadow-none focus:ring-0 [&>span]:truncate"
+          className="h-6 w-auto max-w-[190px] gap-1 border-0 bg-transparent px-1.5 font-mono text-sm font-medium text-muted-foreground focus:ring-0 [&>span]:truncate"
           aria-label="Model override for this agent"
           title={value ?? "Fleet default"}
         >
@@ -146,34 +147,34 @@ function ModelPicker({
         <SelectContent className="max-h-80 w-[300px]">
           <SelectItem value="__default__">
             <span className="flex min-w-0 flex-col items-start">
-              <span className="text-xs font-medium">Fleet default</span>
+              <span className="text-sm font-medium">Fleet default</span>
               {models.data?.default ? (
-                <span className="font-mono text-[10px] text-muted-foreground">
+                <span className="font-mono text-sm text-muted-foreground">
                   {models.data.default.provider}/{models.data.default.id}
                 </span>
               ) : (
-                <span className="text-[10px] text-amber-600 dark:text-amber-400">no provider resolved</span>
+                <span className="text-sm text-warning">no provider resolved</span>
               )}
             </span>
           </SelectItem>
           {!catalogHasValue && value ? (
             <SelectItem value={value}>
-              <span className="font-mono text-xs">{value}</span>
+              <span className="font-mono text-sm">{value}</span>
             </SelectItem>
           ) : null}
           {groups.map((group) => (
             <SelectGroup key={group.provider}>
               <SelectLabel className="flex items-center justify-between gap-2">
                 <span className={providerAccent(group.provider)}>{providerLabel(group.provider)}</span>
-                {!group.configured ? <span className="text-[9px] font-normal">not configured</span> : null}
+                {!group.configured ? <span className="text-sm font-normal">not configured</span> : null}
               </SelectLabel>
               {group.models.map((model) => {
                 const ref = `${model.provider}/${model.id}`;
                 return (
                   <SelectItem key={ref} value={ref} disabled={!group.configured}>
                     <span className="flex w-full min-w-0 items-center justify-between gap-3">
-                      <span className="truncate font-mono text-[11px]">{model.id}</span>
-                      <span className="shrink-0 font-mono text-[9px] text-muted-foreground">
+                      <span className="truncate font-mono text-sm">{model.id}</span>
+                      <span className="shrink-0 font-mono text-sm text-muted-foreground">
                         {new Intl.NumberFormat("en", { notation: "compact" }).format(model.contextWindow)}
                       </span>
                     </span>
@@ -192,7 +193,7 @@ function HarnessStub() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="hidden cursor-default items-center gap-1 rounded border border-dashed px-1.5 py-0.5 text-[9px] text-muted-foreground xl:inline-flex">
+        <span className="hidden cursor-default items-center gap-1 rounded border border-dashed px-1.5 py-0.5 font-mono text-sm text-muted-foreground xl:inline-flex">
           harness: pi-durable
         </span>
       </TooltipTrigger>
@@ -210,20 +211,24 @@ export function ChatPane({ agent }: { agent: string }) {
   const clearAgent = useChatStore((state) => state.clearAgent);
   const lastRequest = useChatStore((state) => state.lastRequestByAgent[agent]);
   const setLastRequest = useChatStore((state) => state.setLastRequest);
+  const setInflight = useChatStore((state) => state.setInflight);
 
   const agentRecord = useFleetStore((state) => state.agents.find((entry) => entry.name === agent));
   const autoRequestId = useFleetStore((state) => state.autoRequestId);
   const setAutoRequestId = useFleetStore((state) => state.setAutoRequestId);
   const features = useFleetStore((state) => state.features);
+  const transcriptLimit = useFleetStore((state) => state.transcriptLimit);
   const models = useModels();
   const mutation = usePromptAgent();
+  const messagesQuery = useMessages(agent, transcriptLimit, true);
 
   const [prompt, setPrompt] = useState("");
   const [requestId, setRequestId] = useState(() => generateRequestId());
   const [showRequestPanel, setShowRequestPanel] = useState(false);
-  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
-  const [pendingModel, setPendingModel] = useState<string | null>(null);
-  const [pendingStartedAt, setPendingStartedAt] = useState<number | null>(null);
+  // The prompt in flight lives in the store, so the rail, the pane header and
+  // the timeline all read the same state.
+  const inflight = useChatStore((state) => state.inflightByAgent[agent] ?? null);
+  const pending = inflight !== null;
   const [inputError, setInputError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -236,7 +241,6 @@ export function ChatPane({ agent }: { agent: string }) {
   // Manual mode keeps the compact footer indicator; opening the full panel is
   // explicit so 3–4 pane layouts keep maximum room for conversation.
   const requestControlsOpen = showRequestPanel;
-  const pending = mutation.isPending;
 
   const resizeTextarea = useCallback(() => {
     const element = textareaRef.current;
@@ -259,14 +263,14 @@ export function ChatPane({ agent }: { agent: string }) {
     if (!stickToBottom.current) return;
     const frame = window.requestAnimationFrame(() => scrollToBottom(true));
     return () => window.cancelAnimationFrame(frame);
-  }, [runs.length, pendingPrompt, scrollToBottom]);
+  }, [runs.length, inflight, scrollToBottom]);
 
   useEffect(() => {
-    if (pendingPrompt !== null) {
+    if (inflight) {
       stickToBottom.current = true;
       scrollToBottom(true);
     }
-  }, [pendingPrompt, scrollToBottom]);
+  }, [inflight, scrollToBottom]);
 
   const handleScroll = () => {
     const element = scrollRef.current;
@@ -276,6 +280,20 @@ export function ChatPane({ agent }: { agent: string }) {
 
   const focusComposer = () => {
     window.setTimeout(() => textareaRef.current?.focus(), 20);
+  };
+
+  /**
+   * The highest durable message id, read fresh right before a prompt is
+   * sent. It is the watermark that lets the timeline attach the durable turn
+   * this prompt produces to this prompt's epoch.
+   */
+  const readWatermark = async (): Promise<number | null> => {
+    try {
+      const fresh = await messagesQuery.refetch();
+      return maxMessageId(fresh.data?.messages ?? []);
+    } catch {
+      return maxMessageId(messagesQuery.data?.messages ?? []);
+    }
   };
 
   const send = async () => {
@@ -299,9 +317,12 @@ export function ChatPane({ agent }: { agent: string }) {
     }
 
     setInputError(null);
-    setPendingPrompt(trimmed);
-    setPendingModel(modelOverride);
-    setPendingStartedAt(Date.now());
+    const startedAt = Date.now();
+    // The durable transcript has no submissionId per message, so read the
+    // transcript once more before sending: the turn this prompt appends
+    // starts above the highest message id that read returned.
+    setInflight(agent, { prompt: trimmed, model: modelOverride, startedAt });
+    const messagesWatermark = await readWatermark();
     startedPerf.current = performance.now();
     stickToBottom.current = true;
 
@@ -329,13 +350,12 @@ export function ChatPane({ agent }: { agent: string }) {
         createdAt: Date.now(),
         error: null,
         httpStatus: 200,
+        messagesWatermark,
       };
       addRun(agent, run);
       setLastRequest(agent, { requestId: id, prompt: trimmed, model: modelOverride, at: Date.now() });
       setPrompt("");
-      setPendingPrompt(null);
-      setPendingModel(null);
-      setPendingStartedAt(null);
+      setInflight(agent, null);
       if (autoRequestId) setRequestId(generateRequestId());
       if (run.status !== "done") {
         toast.warning("Run finished unanswered", {
@@ -360,11 +380,10 @@ export function ChatPane({ agent }: { agent: string }) {
         createdAt: Date.now(),
         error: message,
         httpStatus,
+        messagesWatermark,
       });
       setLastRequest(agent, { requestId: id, prompt: trimmed, model: modelOverride, at: Date.now() });
-      setPendingPrompt(null);
-      setPendingModel(null);
-      setPendingStartedAt(null);
+      setInflight(agent, null);
       if (autoRequestId) setRequestId(generateRequestId());
       toast.error("Prompt failed", { description: message });
     }
@@ -377,15 +396,21 @@ export function ChatPane({ agent }: { agent: string }) {
     }
   };
 
-  const exportTranscript = (format: "md" | "json") => {
-    if (runs.length === 0) return;
-    const payload = { agent, exportedAt: Date.now(), runs };
-    const stem = `${safeFileStem(agent)}-transcript-${new Date().toISOString().slice(0, 10)}`;
+  const downloadEpoch = (payload: { agent: string; exportedAt: number; runs: ChatRun[] }, stem: string, format: "md" | "json") => {
     if (format === "md") {
       downloadTextFile(`${stem}.md`, buildMarkdownExport(payload), "text/markdown");
     } else {
       downloadTextFile(`${stem}.json`, buildJsonExport(payload), "application/json");
     }
+  };
+
+  const exportTranscript = (format: "md" | "json") => {
+    if (runs.length === 0) return;
+    downloadEpoch(
+      { agent, exportedAt: Date.now(), runs },
+      `${safeFileStem(agent)}-transcript-${new Date().toISOString().slice(0, 10)}`,
+      format,
+    );
   };
 
   const copyTranscript = () => {
@@ -394,6 +419,30 @@ export function ChatPane({ agent }: { agent: string }) {
       ok ? toast.success("Transcript copied") : toast.error("Copy failed"),
     );
   };
+
+  const copyRun = (run: ChatRun) => {
+    void copyText(run.error ? run.error : run.text).then((ok) =>
+      ok ? toast.success("Answer copied") : toast.error("Copy failed"),
+    );
+  };
+
+  const exportRun = (run: ChatRun, format: "md" | "json") => {
+    downloadEpoch(
+      { agent, exportedAt: Date.now(), runs: [run] },
+      `${safeFileStem("epoch")}-${safeFileStem(run.submissionId ?? run.requestId)}`,
+      format,
+    );
+  };
+
+  const timeline = useMemo(
+    () =>
+      buildTimeline({
+        runs,
+        messages: messagesQuery.data?.messages ?? [],
+        inflight,
+      }),
+    [runs, messagesQuery.data?.messages, inflight],
+  );
 
   const retryPrompt = (run: ChatRun) => {
     setPrompt(run.prompt);
@@ -428,19 +477,23 @@ export function ChatPane({ agent }: { agent: string }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-8 shrink-0 items-center gap-2 border-b bg-muted/15 px-3 text-[10px] text-muted-foreground">
+      <div className="flex h-8 shrink-0 items-center gap-2 border-b bg-muted/15 px-3 font-mono text-sm text-muted-foreground">
         <span className="truncate">
-          {runs.length === 0 ? "No browser-recorded runs" : `${runs.length} browser-recorded run${runs.length === 1 ? "" : "s"}`}
+          {timeline.epochs.length} epoch{timeline.epochs.length === 1 ? "" : "s"}
+          {timeline.durableEpochs.length > 0
+            ? ` · ${timeline.durableEpochs.length} durable turn${timeline.durableEpochs.length === 1 ? "" : "s"}`
+            : ""}
         </span>
         {runs.length > 0 ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="cursor-default">
-                <Info className="h-3 w-3" />
+                <Info />
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              Local session log. The durable transcript lives on the Worker — open the Transcript tab.
+              Epochs are keyed by the submissionId the Worker returned. The durable transcript holds
+              the tool activity.
             </TooltipContent>
           </Tooltip>
         ) : null}
@@ -450,12 +503,12 @@ export function ChatPane({ agent }: { agent: string }) {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="h-6 w-6"
+                className="size-6"
                 onClick={copyTranscript}
                 disabled={runs.length === 0}
                 aria-label="Copy transcript"
               >
-                <Copy className="h-3 w-3" />
+                <Copy />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Copy transcript</TooltipContent>
@@ -465,21 +518,21 @@ export function ChatPane({ agent }: { agent: string }) {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="h-6 w-6"
+                className="size-6"
                 disabled={runs.length === 0}
                 aria-label="Export or clear transcript"
               >
-                <Download className="h-3 w-3" />
+                <Download />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel>Session log</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => exportTranscript("md")}>
-                <FileDown className="h-3.5 w-3.5" /> Export Markdown
+                <FileDown /> Export Markdown
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportTranscript("json")}>
-                <FileJson className="h-3.5 w-3.5" /> Export JSON
+                <FileJson /> Export JSON
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialog>
@@ -488,7 +541,7 @@ export function ChatPane({ agent }: { agent: string }) {
                     className="text-destructive focus:text-destructive"
                     onSelect={(event) => event.preventDefault()}
                   >
-                    <Eraser className="h-3.5 w-3.5" /> Clear browser log
+                    <Eraser /> Clear browser log
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -525,10 +578,10 @@ export function ChatPane({ agent }: { agent: string }) {
       >
         <div className="mx-auto w-full max-w-5xl space-y-5">
           {modelsFailed ? (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3 text-xs">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+            <div className="flex items-start gap-2 rounded border border-warning/25 bg-warning/5 p-3 text-sm">
+              <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-warning" />
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-amber-700 dark:text-amber-400">Model catalog unavailable</p>
+                <p className="font-medium text-warning">Model catalog unavailable</p>
                 <p className="mt-0.5 text-muted-foreground">
                   Prompts still use the Worker's default model. {errorMessage(models.error)}
                 </p>
@@ -540,13 +593,13 @@ export function ChatPane({ agent }: { agent: string }) {
           ) : null}
 
           {noDefault ? (
-            <div className="flex items-start gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-xs">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm">
+              <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-destructive" />
               <div className="min-w-0">
                 <p className="font-medium text-destructive">No model provider configured</p>
                 <p className="mt-0.5 text-muted-foreground">
                   Set one provider in the Worker's env and restart celld.{" "}
-                  <Link href="/providers" className="text-primary underline underline-offset-2">
+                  <Link href="/providers" className="text-brand underline underline-offset-2">
                     Inspect providers
                   </Link>
                   .
@@ -556,8 +609,8 @@ export function ChatPane({ agent }: { agent: string }) {
           ) : null}
 
           {selectedUnconfigured ? (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 p-3 text-xs">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+            <div className="flex items-start gap-2 rounded border border-warning/25 bg-warning/5 p-3 text-sm">
+              <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-warning" />
               <p className="text-muted-foreground">
                 The pinned model <code className="font-mono text-foreground">{modelOverride}</code> belongs to an
                 unconfigured provider. Switch the override or send with the fleet default.
@@ -565,11 +618,11 @@ export function ChatPane({ agent }: { agent: string }) {
             </div>
           ) : null}
 
-          {runs.length === 0 && !pending ? (
+          {timeline.epochs.length === 0 && timeline.durableEpochs.length === 0 && !pending ? (
             <div className="flex flex-col items-center px-2 pb-2 pt-6 text-center">
-              <AgentAvatar name={displayAgent} size="lg" className="h-12 w-12 rounded-xl text-base" />
-              <h2 className="mt-3 text-base font-semibold tracking-tight">Talk to {displayAgent}</h2>
-              <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
+              <AgentAvatar name={displayAgent} size="lg" className="size-12 text-base" />
+              <h2 className="mt-3 text-base font-bold leading-[1.5]">Talk to {displayAgent}</h2>
+              <p className="mt-1 max-w-sm text-sm leading-[1.5] text-muted-foreground">
                 This pane is wired to the durable cell <code className="font-mono text-foreground">{displayAgent}</code>.
                 Every prompt carries a request ID, so retries are idempotent.
               </p>
@@ -582,11 +635,11 @@ export function ChatPane({ agent }: { agent: string }) {
                       setPrompt(suggestion.prompt);
                       focusComposer();
                     }}
-                    className="rounded-lg border bg-card/70 p-3 text-left transition-colors hover:border-primary/30 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="rounded border bg-card/70 p-3 text-left transition-colors hover:border-brand/40 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <Sparkles className="mb-1.5 h-3.5 w-3.5 text-primary" />
-                    <span className="block text-[11px] font-semibold">{suggestion.title}</span>
-                    <span className="mt-0.5 block text-[10px] leading-relaxed text-muted-foreground">
+                    <Sparkles className="mb-1.5 size-3.5 text-brand" />
+                    <span className="block text-sm font-medium">{suggestion.title}</span>
+                    <span className="mt-0.5 block text-sm leading-[1.5] text-muted-foreground">
                       {suggestion.prompt}
                     </span>
                   </button>
@@ -595,24 +648,23 @@ export function ChatPane({ agent }: { agent: string }) {
             </div>
           ) : null}
 
-          {runs.map((run) => (
-            <RunCard
-              key={run.id}
-              agent={agent}
-              defaultModel={models.data?.default ? `${models.data.default.provider}/${models.data.default.id}` : null}
-              run={run}
-              onRetry={retryPrompt}
-              onReuseId={reuseId}
-              onRemove={(target) => {
+          <AgentTimeline
+            timeline={timeline}
+            runs={runs}
+            defaultModel={
+              models.data?.default ? `${models.data.default.provider}/${models.data.default.id}` : null
+            }
+            actions={{
+              onCopy: copyRun,
+              onExport: exportRun,
+              onRetry: retryPrompt,
+              onReuseId: reuseId,
+              onRemove: (target) => {
                 removeRun(agent, target.id);
-                toast.success("Run removed from browser log");
-              }}
-            />
-          ))}
-
-          {pendingPrompt && pendingStartedAt !== null ? (
-            <PendingRun prompt={pendingPrompt} model={pendingModel} startedAt={pendingStartedAt} />
-          ) : null}
+                toast.success("Epoch removed from browser log");
+              },
+            }}
+          />
         </div>
       </div>
 
@@ -621,7 +673,7 @@ export function ChatPane({ agent }: { agent: string }) {
           {requestControlsOpen ? (
             <div className="rounded-lg border bg-muted/20 p-2.5">
               <div className="flex items-center gap-2">
-                <Label htmlFor={`request-id-${agent}`} className="shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <Label htmlFor={`request-id-${agent}`} className="label-caps shrink-0">
                   Request ID
                 </Label>
                 <Input
@@ -631,7 +683,7 @@ export function ChatPane({ agent }: { agent: string }) {
                     setRequestId(event.target.value);
                     setInputError(null);
                   }}
-                  className="h-7 min-w-0 flex-1 font-mono text-[10px]"
+                  className="h-7 min-w-0 flex-1 font-mono text-sm"
                   spellCheck={false}
                   autoComplete="off"
                   aria-label="Request ID"
@@ -642,11 +694,11 @@ export function ChatPane({ agent }: { agent: string }) {
                       type="button"
                       variant="outline"
                       size="icon-sm"
-                      className="h-7 w-7 shrink-0"
+                      className="size-7 shrink-0"
                       onClick={() => setRequestId(generateRequestId())}
                       aria-label="Generate a new request ID"
                     >
-                      <Wand2 className="h-3.5 w-3.5" />
+                      <Wand2 />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Generate new ID</TooltipContent>
@@ -657,7 +709,7 @@ export function ChatPane({ agent }: { agent: string }) {
                       type="button"
                       variant="outline"
                       size="icon-sm"
-                      className="h-7 w-7 shrink-0"
+                      className="size-7 shrink-0"
                       onClick={() => {
                         void copyText(requestId).then((ok) =>
                           ok ? toast.success("Request ID copied") : toast.error("Copy failed"),
@@ -665,14 +717,14 @@ export function ChatPane({ agent }: { agent: string }) {
                       }}
                       aria-label="Copy request ID"
                     >
-                      <Copy className="h-3.5 w-3.5" />
+                      <Copy />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Copy ID</TooltipContent>
                 </Tooltip>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-                <label className="flex cursor-pointer items-center gap-2 text-[10px] text-muted-foreground">
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
                   <Switch
                     checked={autoRequestId}
                     onCheckedChange={setAutoRequestId}
@@ -694,15 +746,15 @@ export function ChatPane({ agent }: { agent: string }) {
                         description: `${shortId(lastRequest.requestId, 22)} · ${formatRelativeTime(lastRequest.at)}`,
                       });
                     }}
-                    className="truncate font-mono text-[10px] text-primary underline-offset-2 hover:underline"
+                    className="truncate font-mono text-sm text-brand underline-offset-2 hover:underline"
                     title={lastRequest.requestId}
                   >
                     reuse last · {shortId(lastRequest.requestId, 22)}
                   </button>
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">No previous run yet.</span>
+                  <span className="text-sm text-muted-foreground">No previous run yet.</span>
                 )}
-                <span className="ml-auto hidden text-[10px] text-muted-foreground md:inline">
+                <span className="ml-auto hidden font-mono text-sm text-muted-foreground md:inline">
                   Same agent + id = same durable run.
                 </span>
               </div>
@@ -711,7 +763,7 @@ export function ChatPane({ agent }: { agent: string }) {
 
           <div
             className={cn(
-              "rounded-lg border bg-background shadow-sm transition-shadow focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10",
+              "rounded-lg border bg-background transition-colors focus-within:border-brand/50",
               inputError && "border-destructive/40",
             )}
           >
@@ -725,7 +777,7 @@ export function ChatPane({ agent }: { agent: string }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder={`Message ${displayAgent}…  (⌘↵ to send)`}
-              className="min-h-[60px] resize-none border-0 bg-transparent px-3 py-2.5 text-sm shadow-none focus-visible:ring-0"
+              className="min-h-[60px] resize-none border-0 bg-transparent px-3 py-2.5 text-base leading-[1.5] focus-visible:ring-0"
               rows={2}
               aria-label={`Prompt for ${displayAgent}`}
               disabled={false}
@@ -737,45 +789,54 @@ export function ChatPane({ agent }: { agent: string }) {
                 variant="ghost"
                 size="xs"
                 className={cn(
-                  "h-6 gap-1 px-1.5 text-[10px] text-muted-foreground",
+                  "h-6 gap-1 px-1.5 font-mono text-sm text-muted-foreground",
                   requestControlsOpen && "bg-accent text-foreground",
                 )}
                 onClick={() => setShowRequestPanel((open) => !open)}
                 aria-expanded={requestControlsOpen}
               >
-                <KeyRound className="h-3 w-3" />
+                <KeyRound className="size-3" />
                 <span className="hidden sm:inline">ID</span>
-                <span className="font-mono text-[9px]">{shortId(requestId, 9)}</span>
+                <span className="font-mono text-sm">{shortId(requestId, 9)}</span>
               </Button>
               {features.harness ? <HarnessStub /> : null}
               <div className="ml-auto flex items-center gap-2">
-                <span className="hidden items-center gap-1 text-[10px] text-muted-foreground sm:flex">
-                  <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[9px]">⌘</kbd>
-                  <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[9px]">↵</kbd>
+                <span className="hidden items-center gap-1 font-mono text-sm text-muted-foreground sm:flex">
+                  <kbd className="rounded border bg-muted px-1 py-0.5 text-sm">⌘</kbd>
+                  <kbd className="rounded border bg-muted px-1 py-0.5 text-sm">↵</kbd>
                 </span>
                 <Button
                   size="sm"
-                  className="h-7 gap-1.5 px-2.5 text-xs"
+                  className="h-7 gap-1.5 px-2.5 text-sm"
                   onClick={() => void send()}
                   disabled={pending || !prompt.trim()}
                 >
-                  {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <SendHorizontal className="h-3.5 w-3.5" />}
+                  {pending ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
                   {pending ? "Running…" : "Send"}
                 </Button>
               </div>
             </div>
           </div>
 
-          <div className="flex min-h-[14px] items-center justify-between gap-2 px-1 text-[10px] text-muted-foreground">
+          <div className="flex min-h-[16px] items-center justify-between gap-2 px-1 font-mono text-sm text-muted-foreground">
             <span className={cn("truncate", inputError && "text-destructive")}>
               {inputError ??
                 (autoRequestId
                   ? `Auto ID · ${shortId(requestId, 26)}`
                   : `Manual ID · ${shortId(requestId, 26)}`)}
             </span>
-            <span className="hidden shrink-0 items-center gap-1 sm:flex">
-              <span className="h-1 w-1 rounded-full bg-emerald-500" />
-              {pending ? "running" : "ready"}
+            <span className="hidden shrink-0 items-center gap-3 sm:flex">
+              <span className="hidden items-center gap-1 md:inline-flex">no streaming</span>
+              <span className="hidden items-center gap-1 md:inline-flex">buffered POST · 10 min</span>
+              <span className="flex items-center gap-1">
+                <span
+                  className={cn(
+                    "size-1.5 rounded-sm",
+                    pending ? "bg-brand" : "bg-success",
+                  )}
+                />
+                {pending ? "running" : "ready"}
+              </span>
             </span>
           </div>
         </div>

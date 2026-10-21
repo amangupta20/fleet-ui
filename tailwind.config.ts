@@ -1,6 +1,28 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
+/**
+ * Design system: OpenCode.
+ * Source: .agents/skills/popular-web-designs/templates/opencode.ai.md
+ * See docs/design-system.md for the token source and the console type ramp.
+ *
+ * The template's mono stack is the app's only typeface ("one font, one
+ * voice"), so the sans stack points at the same family. Depth is flat: the
+ * template uses borders and background shifts, never box-shadows, so the
+ * shadow scale is empty.
+ */
+const OPENCODE_MONO = [
+  "'JetBrains Mono'",
+  "ui-monospace",
+  "SFMono-Regular",
+  "Menlo",
+  "Monaco",
+  "Consolas",
+  "'Liberation Mono'",
+  "'Courier New'",
+  "monospace",
+];
+
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -15,10 +37,12 @@ const config: Config = {
       padding: "1.5rem",
       screens: { "2xl": "1440px" },
     },
+    // OpenCode depth model: flat. No elevation shadows.
+    boxShadow: {},
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
+        border: "hsl(var(--border) / var(--border-alpha))",
+        input: "hsl(var(--input) / var(--border-alpha))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -53,35 +77,26 @@ const config: Config = {
         sidebar: {
           DEFAULT: "hsl(var(--sidebar))",
           foreground: "hsl(var(--sidebar-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          border: "hsl(var(--sidebar-border))",
+          accent: "hsl(var(--sidebar-accent) / var(--sidebar-accent-alpha))",
+          "accent-hover": "hsl(var(--sidebar-accent-hover) / var(--sidebar-accent-hover-alpha))",
+          border: "hsl(var(--sidebar-border) / var(--border-alpha))",
         },
+        // OpenCode semantic accents
+        brand: "hsl(var(--accent-brand))",
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
       },
       borderRadius: {
+        // Cards and panels follow --radius; controls and badges follow their
+        // own tokens so a theme can vary them independently.
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "var(--radius-control)",
+        sm: "var(--radius-control)",
+        badge: "var(--radius-badge)",
       },
       fontFamily: {
-        sans: [
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
-          "sans-serif",
-        ],
-        mono: [
-          "ui-monospace",
-          "SFMono-Regular",
-          "Menlo",
-          "Monaco",
-          "Consolas",
-          "Liberation Mono",
-          "monospace",
-        ],
+        sans: OPENCODE_MONO,
+        mono: OPENCODE_MONO,
       },
       keyframes: {
         "accordion-down": {
@@ -106,9 +121,6 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-soft": "pulse-soft 1.8s ease-in-out infinite",
         "slide-in": "slide-in 0.18s ease-out",
-      },
-      boxShadow: {
-        glow: "0 0 0 1px hsl(var(--primary) / 0.12), 0 8px 30px -12px hsl(var(--primary) / 0.35)",
       },
     },
   },

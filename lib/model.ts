@@ -28,16 +28,17 @@ export function providerLabel(provider: string): string {
   return PROVIDER_LABELS[provider] ?? provider;
 }
 
+/** Provider accents use the OpenCode tokens only (docs/design-system.md). */
 export function providerAccent(provider: string): string {
   switch (provider) {
     case "router":
-      return "text-emerald-600 dark:text-emerald-400";
+      return "text-brand";
     case "opencode-go":
-      return "text-sky-600 dark:text-sky-400";
+      return "text-success";
     case "openai":
-      return "text-violet-600 dark:text-violet-400";
+      return "text-warning";
     case "google":
-      return "text-amber-600 dark:text-amber-400";
+      return "text-destructive";
     default:
       return "text-muted-foreground";
   }

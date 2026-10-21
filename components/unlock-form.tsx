@@ -58,7 +58,7 @@ export function UnlockForm({ next }: { next: string }) {
       <div className="space-y-2">
         <Label htmlFor="password">Console password</Label>
         <div className="relative">
-          <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="password"
             ref={inputRef}
@@ -76,16 +76,16 @@ export function UnlockForm({ next }: { next: string }) {
           />
         </div>
         {error ? (
-          <p id="unlock-error" role="alert" className="text-xs text-destructive">
+          <p id="unlock-error" role="alert" className="text-sm text-destructive">
             {error}
           </p>
         ) : null}
       </div>
       <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+        {pending ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
         {pending ? "Unlocking…" : "Unlock console"}
       </Button>
-      <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+      <p className="text-center text-sm leading-relaxed text-muted-foreground">
         Set on the server as <code className="font-mono">FLEET_UI_PASSWORD</code>. Sessions last seven days.
       </p>
     </form>

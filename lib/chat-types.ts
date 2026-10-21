@@ -15,6 +15,12 @@ export interface ChatRun {
   createdAt: number;
   error: string | null;
   httpStatus: number | null;
+  /**
+   * Highest durable message id the browser had seen when this prompt was
+   * sent. Durable turns that start above it were appended by this prompt, so
+   * they can be attached to this epoch (see `linkDurableTurns`).
+   */
+  messagesWatermark?: number | null;
 }
 
 export type ServerMessage = MessageEntry;
